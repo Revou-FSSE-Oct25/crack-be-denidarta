@@ -12,7 +12,9 @@ export class SubmissionsService {
   }
 
   findAll() {
-    return this.prisma.assignmentSubmission.findMany({ where: { deletedAt: null } });
+    return this.prisma.assignmentSubmission.findMany({
+      where: { deletedAt: null },
+    });
   }
 
   findOne(id: number) {
@@ -20,10 +22,16 @@ export class SubmissionsService {
   }
 
   update(id: number, dto: UpdateSubmissionDto) {
-    return this.prisma.assignmentSubmission.update({ where: { id }, data: dto });
+    return this.prisma.assignmentSubmission.update({
+      where: { id },
+      data: dto,
+    });
   }
 
   remove(id: number) {
-    return this.prisma.assignmentSubmission.update({ where: { id }, data: { deletedAt: new Date() } });
+    return this.prisma.assignmentSubmission.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
   }
 }

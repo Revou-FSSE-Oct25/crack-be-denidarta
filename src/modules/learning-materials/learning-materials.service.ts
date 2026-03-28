@@ -12,7 +12,9 @@ export class LearningMaterialsService {
   }
 
   findAll() {
-    return this.prisma.learningMaterial.findMany({ where: { deletedAt: null } });
+    return this.prisma.learningMaterial.findMany({
+      where: { deletedAt: null },
+    });
   }
 
   findOne(id: number) {
@@ -24,6 +26,9 @@ export class LearningMaterialsService {
   }
 
   remove(id: number) {
-    return this.prisma.learningMaterial.update({ where: { id }, data: { deletedAt: new Date() } });
+    return this.prisma.learningMaterial.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
   }
 }

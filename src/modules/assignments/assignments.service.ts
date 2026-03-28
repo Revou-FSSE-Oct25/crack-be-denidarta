@@ -24,6 +24,9 @@ export class AssignmentsService {
   }
 
   remove(id: number) {
-    return this.prisma.assignment.update({ where: { id }, data: { deletedAt: new Date() } });
+    return this.prisma.assignment.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
   }
 }

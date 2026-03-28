@@ -24,6 +24,9 @@ export class ClassSessionsService {
   }
 
   remove(id: number) {
-    return this.prisma.classSession.update({ where: { id }, data: { deletedAt: new Date() } });
+    return this.prisma.classSession.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
   }
 }

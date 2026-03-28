@@ -24,6 +24,9 @@ export class CoursesService {
   }
 
   remove(id: number) {
-    return this.prisma.course.update({ where: { id }, data: { deletedAt: new Date() } });
+    return this.prisma.course.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
   }
 }

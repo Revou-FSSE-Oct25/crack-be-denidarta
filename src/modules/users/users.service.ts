@@ -24,6 +24,9 @@ export class UsersService {
   }
 
   remove(id: number) {
-    return this.prisma.user.update({ where: { id }, data: { deletedAt: new Date() } });
+    return this.prisma.user.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
   }
 }
