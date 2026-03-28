@@ -9,10 +9,200 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+enum CourseStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+  COMPLETED
+}
+
+enum EnrollmentStatus {
+  PENDING
+  ENROLLED
+  COMPLETED
+  DROPPED
+}
+
+enum MaterialType {
+  VIDEO
+  PDF
+  ARTICLE
+  SLIDES
+  OTHER
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum AssignmentStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+enum SubmissionStatus {
+  DRAFT
+  SUBMITTED
+  GRADED
+  RETURNED
+}
+
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  username  String   @unique @db.VarChar(100)
+  email     String   @unique @db.VarChar(255)
+  role      UserRole @default(STUDENT)
+
+  taughtCourses       Course[]               @relation("InstructorCourses")
+  enrollments         CourseEnrollment[]
+  attendances         ClassAttendance[]
+  submissions         AssignmentSubmission[]
+
+  @@map("users")
+}
+
+model Course {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  name        String      @db.VarChar(255)
+  description String?
+  status      CourseStatus @default(DRAFT)
+
+  instructorId Int
+  instructor   User @relation("InstructorCourses", fields: [instructorId], references: [id])
+
+  enrollments       CourseEnrollment[]
+  learningMaterials LearningMaterial[]
+  classSessions     ClassSession[]
+  assignments       Assignment[]
+
+  @@map("course")
+}
+
+model CourseEnrollment {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  courseId Int
+  userId   Int
+  status   EnrollmentStatus @default(ENROLLED)
+
+  course Course @relation(fields: [courseId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([courseId, userId])
+  @@map("course_enrollment")
+}
+
+model LearningMaterial {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  courseId     Int
+  title        String       @db.VarChar(255)
+  content      String?
+  fileUrl      String?      @db.VarChar(500)
+  materialType MaterialType
+  orderIndex   Float        @default(0)
+
+  course Course @relation(fields: [courseId], references: [id])
+
+  @@map("learning_material")
+}
+
+model ClassSession {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  courseId   Int
+  title      String   @db.VarChar(255)
+  startsAt   DateTime
+  endsAt     DateTime
+  location   String?  @db.VarChar(255)
+  meetingUrl String?  @db.VarChar(500)
+
+  course      Course            @relation(fields: [courseId], references: [id])
+  attendances ClassAttendance[]
+
+  @@map("class_session")
+}
+
+model ClassAttendance {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  classSessionId Int
+  userId         Int
+  status         AttendanceStatus @default(PRESENT)
+
+  classSession ClassSession @relation(fields: [classSessionId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+
+  @@unique([classSessionId, userId])
+  @@map("class_attendance")
+}
+
+model Assignment {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  courseId    Int
+  title       String           @db.VarChar(255)
+  description String?
+  dueDate     DateTime
+  maxPoints   Decimal          @default(100) @db.Decimal(5, 2)
+  status      AssignmentStatus @default(DRAFT)
+
+  course      Course                 @relation(fields: [courseId], references: [id])
+  submissions AssignmentSubmission[]
+
+  @@map("assignment")
+}
+
+model AssignmentSubmission {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  assignmentId   Int
+  userId         Int
+  submissionText String?
+  fileUrl        String?  @db.VarChar(500)
+  submittedAt    DateTime?
+  grade          Decimal? @db.Decimal(5, 2)
+  passed         Boolean?
+  feedback       String?
+  status         SubmissionStatus @default(DRAFT)
+
+  assignment Assignment @relation(fields: [assignmentId], references: [id])
+  user       User       @relation(fields: [userId], references: [id])
+
+  @@unique([assignmentId, userId])
+  @@map("assignment_submission")
 }
