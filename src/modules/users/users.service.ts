@@ -29,4 +29,31 @@ export class UsersService {
       data: { deletedAt: new Date() },
     });
   }
+
+  findByEmail(email: string) {
+    return this.prisma.user.findUnique({ where: { email } });
+  }
+
+  findByInviteToken(inviteToken: string) {
+    return this.prisma.user.findUnique({ where: { inviteToken } });
+  }
+
+  setInviteToken(id: number, inviteToken: string, inviteTokenExpiresAt: Date) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { inviteToken, inviteTokenExpiresAt, status: 'INVITED' },
+    });
+  }
+
+  activateUser(id: number, hashedPassword: string) {
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        password: hashedPassword,
+        status: 'ACTIVE',
+        inviteToken: null,
+        inviteTokenExpiresAt: null,
+      },
+    });
+  }
 }
