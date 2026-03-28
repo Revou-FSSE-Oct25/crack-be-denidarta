@@ -3,14 +3,14 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PrismaService } from './database/prisma.service';
+import { DatabaseModule } from './database/database.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
-  imports: [ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }])],
+  imports: [ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]), DatabaseModule, UsersModule],
   controllers: [AppController],
   providers: [
     AppService,
-    PrismaService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
