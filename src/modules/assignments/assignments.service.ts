@@ -1,32 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
 import { CreateAssignmentDto } from './dto/create-assignment.dto';
 import { UpdateAssignmentDto } from './dto/update-assignment.dto';
+import { AssignmentRepository } from './assignments.repository';
 
 @Injectable()
 export class AssignmentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly assignmentRepository: AssignmentRepository) {}
 
   create(dto: CreateAssignmentDto) {
-    return this.prisma.assignment.create({ data: dto });
+    return this.assignmentRepository.create(dto);
   }
 
   findAll() {
-    return this.prisma.assignment.findMany({ where: { deletedAt: null } });
+    return this.assignmentRepository.findAll();
   }
 
   findOne(id: number) {
-    return this.prisma.assignment.findUnique({ where: { id } });
+    return this.assignmentRepository.findOne(id);
   }
 
   update(id: number, dto: UpdateAssignmentDto) {
-    return this.prisma.assignment.update({ where: { id }, data: dto });
+    return this.assignmentRepository.update(id, dto);
   }
 
   remove(id: number) {
-    return this.prisma.assignment.update({
-      where: { id },
-      data: { deletedAt: new Date() },
-    });
+    return this.assignmentRepository.remove(id);
   }
 }

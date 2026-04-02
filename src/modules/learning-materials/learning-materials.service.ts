@@ -1,34 +1,31 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
 import { CreateLearningMaterialDto } from './dto/create-learning-material.dto';
 import { UpdateLearningMaterialDto } from './dto/update-learning-material.dto';
+import { LearningMaterialRepository } from './learning-materials.repository';
 
 @Injectable()
 export class LearningMaterialsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly learningMaterialRepository: LearningMaterialRepository,
+  ) {}
 
   create(dto: CreateLearningMaterialDto) {
-    return this.prisma.learningMaterial.create({ data: dto });
+    return this.learningMaterialRepository.create(dto);
   }
 
   findAll() {
-    return this.prisma.learningMaterial.findMany({
-      where: { deletedAt: null },
-    });
+    return this.learningMaterialRepository.findAll();
   }
 
   findOne(id: number) {
-    return this.prisma.learningMaterial.findUnique({ where: { id } });
+    return this.learningMaterialRepository.findOne(id);
   }
 
   update(id: number, dto: UpdateLearningMaterialDto) {
-    return this.prisma.learningMaterial.update({ where: { id }, data: dto });
+    return this.learningMaterialRepository.update(id, dto);
   }
 
   remove(id: number) {
-    return this.prisma.learningMaterial.update({
-      where: { id },
-      data: { deletedAt: new Date() },
-    });
+    return this.learningMaterialRepository.remove(id);
   }
 }

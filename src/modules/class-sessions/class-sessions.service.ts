@@ -1,32 +1,31 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
 import { CreateClassSessionDto } from './dto/create-class-session.dto';
 import { UpdateClassSessionDto } from './dto/update-class-session.dto';
+import { ClassSessionRepository } from './class-sessions.repository';
 
 @Injectable()
 export class ClassSessionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly classSessionRepository: ClassSessionRepository,
+  ) {}
 
   create(dto: CreateClassSessionDto) {
-    return this.prisma.classSession.create({ data: dto });
+    return this.classSessionRepository.create(dto);
   }
 
   findAll() {
-    return this.prisma.classSession.findMany({ where: { deletedAt: null } });
+    return this.classSessionRepository.findAll();
   }
 
   findOne(id: number) {
-    return this.prisma.classSession.findUnique({ where: { id } });
+    return this.classSessionRepository.findOne(id);
   }
 
   update(id: number, dto: UpdateClassSessionDto) {
-    return this.prisma.classSession.update({ where: { id }, data: dto });
+    return this.classSessionRepository.update(id, dto);
   }
 
   remove(id: number) {
-    return this.prisma.classSession.update({
-      where: { id },
-      data: { deletedAt: new Date() },
-    });
+    return this.classSessionRepository.remove(id);
   }
 }

@@ -1,37 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { UpdateSubmissionDto } from './dto/update-submission.dto';
+import { SubmissionRepository } from './submissions.repository';
 
 @Injectable()
 export class SubmissionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly submissionRepository: SubmissionRepository) {}
 
   create(dto: CreateSubmissionDto) {
-    return this.prisma.assignmentSubmission.create({ data: dto });
+    return this.submissionRepository.create(dto);
   }
 
   findAll() {
-    return this.prisma.assignmentSubmission.findMany({
-      where: { deletedAt: null },
-    });
+    return this.submissionRepository.findAll();
   }
 
   findOne(id: number) {
-    return this.prisma.assignmentSubmission.findUnique({ where: { id } });
+    return this.submissionRepository.findOne(id);
   }
 
   update(id: number, dto: UpdateSubmissionDto) {
-    return this.prisma.assignmentSubmission.update({
-      where: { id },
-      data: dto,
-    });
+    return this.submissionRepository.update(id, dto);
   }
 
   remove(id: number) {
-    return this.prisma.assignmentSubmission.update({
-      where: { id },
-      data: { deletedAt: new Date() },
-    });
+    return this.submissionRepository.remove(id);
   }
 }
