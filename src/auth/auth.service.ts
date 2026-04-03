@@ -65,7 +65,11 @@ export class AuthService {
     const inviteToken = crypto.randomUUID();
     const inviteTokenExpiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
-    await this.usersService.setInviteToken(userId, inviteToken, inviteTokenExpiresAt);
+    await this.usersService.setInviteToken(
+      userId,
+      inviteToken,
+      inviteTokenExpiresAt,
+    );
 
     return { inviteToken, expiresAt: inviteTokenExpiresAt };
   }
@@ -74,7 +78,8 @@ export class AuthService {
     const user = await this.usersService.findByInviteToken(dto.inviteToken);
 
     if (!user) throw new BadRequestException('Invalid invite token');
-    if (user.status !== 'INVITED') throw new BadRequestException('User is not in invited state');
+    if (user.status !== 'INVITED')
+      throw new BadRequestException('User is not in invited state');
     if (!user.inviteTokenExpiresAt || user.inviteTokenExpiresAt < new Date()) {
       throw new BadRequestException('Invite token has expired');
     }

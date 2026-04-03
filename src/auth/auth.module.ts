@@ -5,10 +5,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
 @Module({
-  imports: [
-    UsersModule,
-    JwtModule.register({}),
-  ],
+  imports: [UsersModule, JwtModule.register({})],
   controllers: [AuthController],
   providers: [AuthService],
 })

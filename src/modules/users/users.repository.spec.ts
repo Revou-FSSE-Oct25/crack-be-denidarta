@@ -13,7 +13,7 @@ const mockPrisma = {
 };
 
 describe('UserRepository', () => {
-  let repo: UserRepository;
+  let mockRepo: UserRepository;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -23,7 +23,7 @@ describe('UserRepository', () => {
       ],
     }).compile();
 
-    repo = module.get<UserRepository>(UserRepository);
+    mockRepo = module.get<UserRepository>(UserRepository);
   });
 
   afterEach(() => jest.clearAllMocks());
@@ -33,7 +33,7 @@ describe('UserRepository', () => {
       const dto = { username: 'alice', email: 'alice@test.com' };
       mockPrisma.user.create.mockResolvedValue({ id: 1, ...dto });
 
-      const result = await repo.create(dto as any);
+      const result = await mockRepo.create(dto);
 
       expect(mockPrisma.user.create).toHaveBeenCalledWith({ data: dto });
       expect(result).toEqual({ id: 1, ...dto });
@@ -45,7 +45,7 @@ describe('UserRepository', () => {
       const users = [{ id: 1 }, { id: 2 }];
       mockPrisma.user.findMany.mockResolvedValue(users);
 
-      const result = await repo.findAll();
+      const result = await mockRepo.findAll();
 
       expect(mockPrisma.user.findMany).toHaveBeenCalledWith({
         where: { deletedAt: null },
@@ -59,7 +59,7 @@ describe('UserRepository', () => {
       const user = { id: 1, email: 'alice@test.com' };
       mockPrisma.user.findUnique.mockResolvedValue(user);
 
-      const result = await repo.findOne(1);
+      const result = await mockRepo.findOne(1);
 
       expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
@@ -70,7 +70,7 @@ describe('UserRepository', () => {
     it('should return null when user is not found', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
 
-      const result = await repo.findOne(999);
+      const result = await mockRepo.findOne(999);
 
       expect(result).toBeNull();
     });
@@ -81,7 +81,7 @@ describe('UserRepository', () => {
       const user = { id: 1, email: 'alice@test.com' };
       mockPrisma.user.findUnique.mockResolvedValue(user);
 
-      const result = await repo.findByEmail('alice@test.com');
+      const result = await mockRepo.findByEmail('alice@test.com');
 
       expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
         where: { email: 'alice@test.com' },
@@ -92,7 +92,7 @@ describe('UserRepository', () => {
     it('should return null when email is not found', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
 
-      const result = await repo.findByEmail('unknown@test.com');
+      const result = await mockRepo.findByEmail('unknown@test.com');
 
       expect(result).toBeNull();
     });
@@ -104,7 +104,7 @@ describe('UserRepository', () => {
       const user = { id: 1, inviteToken: token };
       mockPrisma.user.findUnique.mockResolvedValue(user);
 
-      const result = await repo.findByInviteToken(token);
+      const result = await mockRepo.findByInviteToken(token);
 
       expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
         where: { inviteToken: token },
@@ -115,7 +115,7 @@ describe('UserRepository', () => {
     it('should return null when token is not found', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
 
-      const result = await repo.findByInviteToken('invalid-token');
+      const result = await mockRepo.findByInviteToken('invalid-token');
 
       expect(result).toBeNull();
     });
@@ -127,7 +127,7 @@ describe('UserRepository', () => {
       const updated = { id: 1, ...dto };
       mockPrisma.user.update.mockResolvedValue(updated);
 
-      const result = await repo.update(1, dto as any);
+      const result = await mockRepo.update(1, dto);
 
       expect(mockPrisma.user.update).toHaveBeenCalledWith({
         where: { id: 1 },
@@ -163,7 +163,7 @@ describe('UserRepository', () => {
         status: 'INVITED',
       });
 
-      await repo.inviteUser(1, token, expiresAt);
+      await mockRepo.inviteUser(1, token, expiresAt);
 
       expect(mockPrisma.user.update).toHaveBeenCalledWith({
         where: { id: 1 },
@@ -181,7 +181,7 @@ describe('UserRepository', () => {
       const hash = '$2b$10$hashedpassword';
       mockPrisma.user.update.mockResolvedValue({ id: 1, status: 'ACTIVE' });
 
-      await repo.activateUser(1, hash);
+      await mockRepo.activateUser(1, hash);
 
       expect(mockPrisma.user.update).toHaveBeenCalledWith({
         where: { id: 1 },
