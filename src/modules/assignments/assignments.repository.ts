@@ -7,9 +7,13 @@ import { UpdateAssignmentDto } from './dto/update-assignment.dto';
 export class AssignmentRepository {
   constructor(private prisma: PrismaService) {}
 
+  // ---- Create ----
+
   create(dto: CreateAssignmentDto) {
     return this.prisma.assignment.create({ data: dto });
   }
+
+  // ---- Read ----
 
   findAll() {
     return this.prisma.assignment.findMany({ where: { deletedAt: null } });
@@ -19,9 +23,13 @@ export class AssignmentRepository {
     return this.prisma.assignment.findUnique({ where: { id } });
   }
 
+  // ---- Update ----
+
   update(id: number, dto: UpdateAssignmentDto) {
     return this.prisma.assignment.update({ where: { id }, data: dto });
   }
+
+  // ---- Delete ----
 
   remove(id: number) {
     return this.prisma.assignment.update({

@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AssignmentsService } from './assignments.service';
-import { AssignmentsRepository } from './assignments.repository';
+import { AssignmentRepository } from './assignments.repository';
 
-const mockAssignmentsRepository = {
+const mockAssignmentRepository = {
   create: jest.fn(),
   findAll: jest.fn(),
   findOne: jest.fn(),
@@ -17,7 +17,7 @@ describe('AssignmentsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AssignmentsService,
-        { provide: AssignmentsRepository, useValue: mockAssignmentsRepository },
+        { provide: AssignmentRepository, useValue: mockAssignmentRepository },
       ],
     }).compile();
 
