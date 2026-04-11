@@ -15,10 +15,14 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  // ---- Create ----
+
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
+
+  // ---- Read ----
 
   @Get()
   findAll() {
@@ -30,10 +34,14 @@ export class UsersController {
     return this.usersService.findOne(+id);
   }
 
+  // ---- Update ----
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(+id, updateUserDto);
   }
+
+  // ---- Delete ----
 
   @Delete(':id')
   remove(@Param('id') id: string) {

@@ -1,59 +1,57 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { UserRepository } from './users.repository';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly userRepository: UserRepository) {}
+
+  // ---- Create ----
 
   create(dto: CreateUserDto) {
-    return this.prisma.user.create({ data: dto });
+    return this.userRepository.create(dto);
   }
 
+  // ---- Read ----
+
   findAll() {
-    return this.prisma.user.findMany({ where: { deletedAt: null } });
+    return this.userRepository.findAll();
   }
 
   findOne(id: number) {
-    return this.prisma.user.findUnique({ where: { id } });
-  }
-
-  update(id: number, dto: UpdateUserDto) {
-    return this.prisma.user.update({ where: { id }, data: dto });
-  }
-
-  remove(id: number) {
-    return this.prisma.user.update({
-      where: { id },
-      data: { deletedAt: new Date() },
-    });
+    return this.userRepository.findOne(id);
   }
 
   findByEmail(email: string) {
-    return this.prisma.user.findUnique({ where: { email } });
+    return this.userRepository.findByEmail(email);
   }
 
   findByInviteToken(inviteToken: string) {
-    return this.prisma.user.findUnique({ where: { inviteToken } });
+    return this.userRepository.findByInviteToken(inviteToken);
+  }
+
+  // ---- Update ----
+
+  update(id: number, dto: UpdateUserDto) {
+    return this.userRepository.update(id, dto);
   }
 
   setInviteToken(id: number, inviteToken: string, inviteTokenExpiresAt: Date) {
-    return this.prisma.user.update({
-      where: { id },
-      data: { inviteToken, inviteTokenExpiresAt, status: 'INVITED' },
-    });
+    return this.userRepository.inviteUser(
+      id,
+      inviteToken,
+      inviteTokenExpiresAt,
+    );
   }
 
   activateUser(id: number, hashedPassword: string) {
-    return this.prisma.user.update({
-      where: { id },
-      data: {
-        password: hashedPassword,
-        status: 'ACTIVE',
-        inviteToken: null,
-        inviteTokenExpiresAt: null,
-      },
-    });
+    return this.userRepository.activateUser(id, hashedPassword);
+  }
+
+  // ---- Delete ----
+
+  remove(id: number) {
+    return this.userRepository.remove(id);
   }
 }

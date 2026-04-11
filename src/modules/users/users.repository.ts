@@ -7,9 +7,13 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UserRepository {
   constructor(private prisma: PrismaService) {}
 
+  // ---- Create ----
+
   create(dto: CreateUserDto) {
     return this.prisma.user.create({ data: dto });
   }
+
+  // ---- Read ----
 
   findAll() {
     return this.prisma.user.findMany({ where: { deletedAt: null } });
@@ -27,15 +31,10 @@ export class UserRepository {
     return this.prisma.user.findUnique({ where: { inviteToken } });
   }
 
+  // ---- Update ----
+
   update(id: number, dto: UpdateUserDto) {
     return this.prisma.user.update({ where: { id }, data: dto });
-  }
-
-  remove(id: number) {
-    return this.prisma.user.update({
-      where: { id },
-      data: { deletedAt: new Date() },
-    });
   }
 
   inviteUser(id: number, inviteToken: string, inviteTokenExpiresAt: Date) {
@@ -54,6 +53,15 @@ export class UserRepository {
         inviteToken: null,
         inviteTokenExpiresAt: null,
       },
+    });
+  }
+
+  // ---- Delete ----
+
+  remove(id: number) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { deletedAt: new Date() },
     });
   }
 }
