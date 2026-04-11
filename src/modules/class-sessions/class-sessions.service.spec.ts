@@ -17,7 +17,10 @@ describe('ClassSessionsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ClassSessionsService,
-        { provide: ClassSessionsRepository, useValue: mockClassSessionsRepository },
+        {
+          provide: ClassSessionsRepository,
+          useValue: mockClassSessionsRepository,
+        },
       ],
     }).compile();
 

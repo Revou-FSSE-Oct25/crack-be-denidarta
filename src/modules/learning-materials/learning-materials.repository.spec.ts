@@ -23,7 +23,9 @@ describe('LearningMaterialsRepository', () => {
       ],
     }).compile();
 
-    repository = module.get<LearningMaterialsRepository>(LearningMaterialsRepository);
+    repository = module.get<LearningMaterialsRepository>(
+      LearningMaterialsRepository,
+    );
   });
 
   afterEach(() => jest.clearAllMocks());

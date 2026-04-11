@@ -17,7 +17,10 @@ describe('LearningMaterialsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         LearningMaterialsService,
-        { provide: LearningMaterialsRepository, useValue: mockLearningMaterialsRepository },
+        {
+          provide: LearningMaterialsRepository,
+          useValue: mockLearningMaterialsRepository,
+        },
       ],
     }).compile();
 

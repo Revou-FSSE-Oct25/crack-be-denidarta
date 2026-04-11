@@ -16,7 +16,9 @@ describe('ClassSessionsController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ClassSessionsController],
-      providers: [{ provide: ClassSessionsService, useValue: mockClassSessionsService }],
+      providers: [
+        { provide: ClassSessionsService, useValue: mockClassSessionsService },
+      ],
     }).compile();
 
     controller = module.get<ClassSessionsController>(ClassSessionsController);

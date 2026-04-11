@@ -16,10 +16,17 @@ describe('LearningMaterialsController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [LearningMaterialsController],
-      providers: [{ provide: LearningMaterialsService, useValue: mockLearningMaterialsService }],
+      providers: [
+        {
+          provide: LearningMaterialsService,
+          useValue: mockLearningMaterialsService,
+        },
+      ],
     }).compile();
 
-    controller = module.get<LearningMaterialsController>(LearningMaterialsController);
+    controller = module.get<LearningMaterialsController>(
+      LearningMaterialsController,
+    );
   });
 
   afterEach(() => jest.clearAllMocks());
