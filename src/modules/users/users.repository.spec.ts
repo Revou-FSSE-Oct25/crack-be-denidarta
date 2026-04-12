@@ -27,7 +27,7 @@ describe('UserRepository', () => {
   });
 
   afterEach(() => jest.clearAllMocks());
-
+  //---- CREATE ---
   describe('create', () => {
     it('should call prisma.user.create with dto', async () => {
       const dto = { username: 'alice', email: 'alice@test.com' };
@@ -40,6 +40,7 @@ describe('UserRepository', () => {
     });
   });
 
+  //--- READ ----
   describe('findAll', () => {
     it('should call prisma.user.findMany filtering out soft-deleted users', async () => {
       const users = [{ id: 1 }, { id: 2 }];
