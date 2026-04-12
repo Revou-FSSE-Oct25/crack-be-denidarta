@@ -23,7 +23,18 @@ describe('AuthController', () => {
 
   afterEach(() => jest.clearAllMocks());
 
-  describe('login', () => {});
+  describe('login', () => {
+    it('calls authService.login with request.user and returns tokens', async () => {
+      const user = { id: 1, email: 'test@example.com', role: 'STUDENT', status: 'ACTIVE' };
+      const tokens = { accessToken: 'access', refreshToken: 'refresh' };
+      mockAuthService.login.mockResolvedValue(tokens);
+
+      const result = await controller.login({ user } as any);
+
+      expect(mockAuthService.login).toHaveBeenCalledWith(user);
+      expect(result).toEqual(tokens);
+    });
+  });
 
   describe('refresh', () => {});
 

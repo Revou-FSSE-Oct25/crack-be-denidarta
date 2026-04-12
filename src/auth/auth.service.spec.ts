@@ -33,6 +33,62 @@ describe('AuthService', () => {
 
   afterEach(() => jest.clearAllMocks());
 
+  describe('validateUser', () => {
+    it('returns user without password when credentials are valid', async () => {
+      const user = {
+        id: 1,
+        email: 'test@example.com',
+        password: await require('bcrypt').hash('password123', 10),
+        role: 'STUDENT',
+        status: 'ACTIVE',
+      };
+      mockUsersService.findByEmail.mockResolvedValue(user);
+
+      const result = await service.validateUser('test@example.com', 'password123');
+
+      expect(result).toEqual({ id: 1, email: 'test@example.com', role: 'STUDENT', status: 'ACTIVE' });
+      expect(result).not.toHaveProperty('password');
+    });
+
+    it('returns null when user not found', async () => {
+      mockUsersService.findByEmail.mockResolvedValue(null);
+
+      const result = await service.validateUser('no@example.com', 'password123');
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when password does not match', async () => {
+      const user = {
+        id: 1,
+        email: 'test@example.com',
+        password: await require('bcrypt').hash('correctpassword', 10),
+        role: 'STUDENT',
+        status: 'ACTIVE',
+      };
+      mockUsersService.findByEmail.mockResolvedValue(user);
+
+      const result = await service.validateUser('test@example.com', 'wrongpassword');
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when user is not ACTIVE', async () => {
+      const user = {
+        id: 1,
+        email: 'test@example.com',
+        password: await require('bcrypt').hash('password123', 10),
+        role: 'STUDENT',
+        status: 'INVITED',
+      };
+      mockUsersService.findByEmail.mockResolvedValue(user);
+
+      const result = await service.validateUser('test@example.com', 'password123');
+
+      expect(result).toBeNull();
+    });
+  });
+
   describe('login', () => {});
 
   describe('refresh', () => {});

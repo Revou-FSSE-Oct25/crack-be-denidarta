@@ -6,9 +6,12 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import type { Request } from 'express';
 import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { SetPasswordDto } from './dto/set-password.dto';
 import { Public } from '../common/decorators/public.decorator';
@@ -18,10 +21,11 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
+  @UseGuards(AuthGuard('local'))
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  login(@Req() req: Request) {
+    return this.authService.login(req.user as { id: number; email: string; role: string });
   }
 
   @Public()

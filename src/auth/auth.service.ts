@@ -6,7 +6,6 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../modules/users/users.service';
-import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { SetPasswordDto } from './dto/set-password.dto';
 
@@ -17,18 +16,18 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async login(dto: LoginDto) {
-    const user = await this.usersService.findByEmail(dto.email);
+  async validateUser(email: string, password: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user || user.status !== 'ACTIVE') return null;
 
-    if (!user || user.status !== 'ACTIVE') {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+    const passwordMatch = await bcrypt.compare(password, user.password!);
+    if (!passwordMatch) return null;
 
-    const passwordMatch = await bcrypt.compare(dto.password, user.password!);
-    if (!passwordMatch) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+    const { password: _, ...result } = user;
+    return result;
+  }
 
+  async login(user: { id: number; email: string; role: string }) {
     return this.issueTokens(user.id, user.email, user.role);
   }
 
