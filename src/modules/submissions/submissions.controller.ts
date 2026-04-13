@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { SubmissionsService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
@@ -21,8 +22,16 @@ export class SubmissionsController {
   }
 
   @Get()
-  findAll() {
-    return this.submissionsService.findAll();
+  findAll(
+    @Query('studentId') studentId?: string,
+    @Query('assignmentId') assignmentId?: string,
+    @Query('courseId') courseId?: string,
+  ) {
+    return this.submissionsService.findAll({
+      studentId: studentId ? +studentId : undefined,
+      assignmentId: assignmentId ? +assignmentId : undefined,
+      courseId: courseId ? +courseId : undefined,
+    });
   }
 
   @Get(':id')
