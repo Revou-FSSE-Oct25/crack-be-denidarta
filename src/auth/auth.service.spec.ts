@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { UsersService } from '../modules/users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
 
 const mockUsersService = {
   findByEmail: jest.fn(),
@@ -38,7 +39,7 @@ describe('AuthService', () => {
       const user = {
         id: 1,
         email: 'test@example.com',
-        password: await require('bcrypt').hash('password123', 10),
+        password: await bcrypt.hash('password123', 10),
         role: 'STUDENT',
         status: 'ACTIVE',
       };
@@ -73,7 +74,7 @@ describe('AuthService', () => {
       const user = {
         id: 1,
         email: 'test@example.com',
-        password: await require('bcrypt').hash('correctpassword', 10),
+        password: await bcrypt.hash('correctpassword', 10),
         role: 'STUDENT',
         status: 'ACTIVE',
       };
@@ -91,7 +92,7 @@ describe('AuthService', () => {
       const user = {
         id: 1,
         email: 'test@example.com',
-        password: await require('bcrypt').hash('password123', 10),
+        password: await bcrypt.hash('password123', 10),
         role: 'STUDENT',
         status: 'INVITED',
       };

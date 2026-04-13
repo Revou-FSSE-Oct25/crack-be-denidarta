@@ -18,6 +18,9 @@ import { SetPasswordDto } from './dto/set-password.dto';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { UserRole } from '@prisma/client';
 
 @Controller('auth')
 export class AuthController {
@@ -53,6 +56,8 @@ export class AuthController {
 
   @Post('invite/:userId')
   @HttpCode(HttpStatus.OK)
+  @Roles(UserRole.ADMIN)
+  @UseGuards(RolesGuard)
   generateInvite(@Param('userId', ParseIntPipe) userId: number) {
     return this.authService.generateInvite(userId);
   }
