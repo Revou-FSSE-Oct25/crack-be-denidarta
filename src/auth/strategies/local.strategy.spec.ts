@@ -24,7 +24,12 @@ describe('LocalStrategy', () => {
   afterEach(() => jest.clearAllMocks());
 
   it('returns the user when credentials are valid', async () => {
-    const user = { id: 1, email: 'test@example.com', role: 'STUDENT', status: 'ACTIVE' };
+    const user = {
+      id: 1,
+      email: 'test@example.com',
+      role: 'STUDENT',
+      status: 'ACTIVE',
+    };
     mockAuthService.validateUser.mockResolvedValue(user);
 
     const result = await strategy.validate('test@example.com', 'password123');

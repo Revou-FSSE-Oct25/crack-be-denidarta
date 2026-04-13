@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
@@ -15,6 +16,8 @@ import { AuthService } from './auth.service';
 import { RefreshDto } from './dto/refresh.dto';
 import { SetPasswordDto } from './dto/set-password.dto';
 import { Public } from '../common/decorators/public.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import type { JwtPayload } from '../common/decorators/current-user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -25,7 +28,9 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   login(@Req() req: Request) {
-    return this.authService.login(req.user as { id: number; email: string; role: string });
+    return this.authService.login(
+      req.user as { id: number; email: string; role: string },
+    );
   }
 
   @Public()
@@ -33,6 +38,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   refresh(@Body() dto: RefreshDto) {
     return this.authService.refresh(dto);
+  }
+
+  @Get('me')
+  me(@CurrentUser() user: JwtPayload) {
+    return user;
   }
 
   @Post('logout')

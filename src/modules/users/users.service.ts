@@ -19,6 +19,10 @@ export class UsersService {
     return this.userRepository.findAll();
   }
 
+  findByRole(role: string) {
+    return this.userRepository.findByRole(role);
+  }
+
   findOne(id: number) {
     return this.userRepository.findOne(id);
   }
@@ -29,6 +33,10 @@ export class UsersService {
 
   findByInviteToken(inviteToken: string) {
     return this.userRepository.findByInviteToken(inviteToken);
+  }
+
+  findAllPaginated(skip: number, take: number) {
+    return this.userRepository.findAllPaginated(skip, take);
   }
 
   // ---- Update ----

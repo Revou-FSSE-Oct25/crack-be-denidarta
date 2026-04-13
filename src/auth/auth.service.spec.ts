@@ -44,16 +44,27 @@ describe('AuthService', () => {
       };
       mockUsersService.findByEmail.mockResolvedValue(user);
 
-      const result = await service.validateUser('test@example.com', 'password123');
+      const result = await service.validateUser(
+        'test@example.com',
+        'password123',
+      );
 
-      expect(result).toEqual({ id: 1, email: 'test@example.com', role: 'STUDENT', status: 'ACTIVE' });
+      expect(result).toEqual({
+        id: 1,
+        email: 'test@example.com',
+        role: 'STUDENT',
+        status: 'ACTIVE',
+      });
       expect(result).not.toHaveProperty('password');
     });
 
     it('returns null when user not found', async () => {
       mockUsersService.findByEmail.mockResolvedValue(null);
 
-      const result = await service.validateUser('no@example.com', 'password123');
+      const result = await service.validateUser(
+        'no@example.com',
+        'password123',
+      );
 
       expect(result).toBeNull();
     });
@@ -68,7 +79,10 @@ describe('AuthService', () => {
       };
       mockUsersService.findByEmail.mockResolvedValue(user);
 
-      const result = await service.validateUser('test@example.com', 'wrongpassword');
+      const result = await service.validateUser(
+        'test@example.com',
+        'wrongpassword',
+      );
 
       expect(result).toBeNull();
     });
@@ -83,7 +97,10 @@ describe('AuthService', () => {
       };
       mockUsersService.findByEmail.mockResolvedValue(user);
 
-      const result = await service.validateUser('test@example.com', 'password123');
+      const result = await service.validateUser(
+        'test@example.com',
+        'password123',
+      );
 
       expect(result).toBeNull();
     });

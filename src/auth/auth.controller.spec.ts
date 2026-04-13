@@ -25,7 +25,12 @@ describe('AuthController', () => {
 
   describe('login', () => {
     it('calls authService.login with request.user and returns tokens', async () => {
-      const user = { id: 1, email: 'test@example.com', role: 'STUDENT', status: 'ACTIVE' };
+      const user = {
+        id: 1,
+        email: 'test@example.com',
+        role: 'STUDENT',
+        status: 'ACTIVE',
+      };
       const tokens = { accessToken: 'access', refreshToken: 'refresh' };
       mockAuthService.login.mockResolvedValue(tokens);
 

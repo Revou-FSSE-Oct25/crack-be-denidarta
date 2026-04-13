@@ -138,21 +138,21 @@ describe('UserRepository', () => {
     });
   });
 
-  // describe('remove', () => {
-  //   it('should soft-delete user by setting deletedAt', async () => {
-  //     mockPrisma.user.update.mockResolvedValue({
-  //       id: 1,
-  //       deletedAt: new Date(),
-  //     });
+  describe('remove', () => {
+    it('should soft-delete user by setting deletedAt', async () => {
+      mockPrisma.user.update.mockResolvedValue({
+        id: 1,
+        deletedAt: new Date(),
+      });
 
-  //     await repo.remove(1);
+      await repo.remove(1);
 
-  //     expect(mockPrisma.user.update).toHaveBeenCalledWith({
-  //       where: { id: 1 },
-  //       data: { deletedAt: expect.any(Date) },
-  //     });
-  //   });
-  // });
+      expect(mockPrisma.user.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { deletedAt: expect.any(Date) },
+      });
+    });
+  });
 
   describe('setInviteToken', () => {
     it('should update user with invite token and INVITED status', async () => {

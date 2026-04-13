@@ -43,14 +43,19 @@ export class HttpExceptionFilter implements ExceptionFilter {
         message = res;
       } else if (typeof res === 'object' && res !== null && 'message' in res) {
         const raw = (res as Record<string, unknown>).message;
-        message = Array.isArray(raw) ? raw.join('; ') : String(raw ?? exception.message);
+        message = Array.isArray(raw)
+          ? raw.join('; ')
+          : String(raw ?? exception.message);
       }
       return { statusCode: exception.getStatus(), message };
     }
 
     if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       if (exception.code === 'P2025') {
-        return { statusCode: HttpStatus.NOT_FOUND, message: 'Record not found' };
+        return {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'Record not found',
+        };
       }
       if (exception.code === 'P2002') {
         const fields = Array.isArray(exception.meta?.target)

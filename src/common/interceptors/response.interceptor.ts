@@ -15,9 +15,10 @@ export interface ApiResponse<T> {
 }
 
 @Injectable()
-export class ResponseInterceptor<T>
-  implements NestInterceptor<T, ApiResponse<T>>
-{
+export class ResponseInterceptor<T> implements NestInterceptor<
+  T,
+  ApiResponse<T>
+> {
   intercept(
     context: ExecutionContext,
     next: CallHandler<T>,
@@ -27,12 +28,15 @@ export class ResponseInterceptor<T>
       .getResponse<{ statusCode: number }>().statusCode;
 
     return next.handle().pipe(
-      map((data) => ({
-        success: true,
-        statusCode,
-        message: 'OK',
-        data: data ?? null,
-      } as ApiResponse<T>)),
+      map(
+        (data) =>
+          ({
+            success: true,
+            statusCode,
+            message: 'OK',
+            data: data ?? null,
+          }) as ApiResponse<T>,
+      ),
     );
   }
 }

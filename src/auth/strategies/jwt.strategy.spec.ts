@@ -19,6 +19,10 @@ describe('JwtStrategy', () => {
 
     const result = await strategy.validate(payload);
 
-    expect(result).toEqual({ sub: 1, email: 'test@example.com', role: 'STUDENT' });
+    expect(result).toEqual({
+      sub: 1,
+      email: 'test@example.com',
+      role: 'STUDENT',
+    });
   });
 });

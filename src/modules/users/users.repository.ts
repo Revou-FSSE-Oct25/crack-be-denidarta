@@ -19,6 +19,12 @@ export class UserRepository {
     return this.prisma.user.findMany({ where: { deletedAt: null } });
   }
 
+  findByRole(role: string) {
+    return this.prisma.user.findMany({
+      where: { deletedAt: null, role: role as never },
+    });
+  }
+
   findOne(id: number) {
     return this.prisma.user.findUnique({ where: { id } });
   }
@@ -29,6 +35,13 @@ export class UserRepository {
 
   findByInviteToken(inviteToken: string) {
     return this.prisma.user.findUnique({ where: { inviteToken } });
+  }
+
+  findAllPaginated(skip: number, take: number) {
+    return Promise.all([
+      this.prisma.user.findMany({ where: { deletedAt: null }, skip, take }),
+      this.prisma.user.count({ where: { deletedAt: null } }),
+    ]);
   }
 
   // ---- Update ----
