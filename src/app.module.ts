@@ -14,6 +14,7 @@ import { ClassSessionsModule } from './modules/class-sessions/class-sessions.mod
 import { AttendancesModule } from './modules/attendances/attendances.module';
 import { AssignmentsModule } from './modules/assignments/assignments.module';
 import { SubmissionsModule } from './modules/submissions/submissions.module';
+import { ProfilesModule } from './modules/profiles/profiles.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './common/guards/jwt.guard';
 import { RolesGuard } from './common/guards/roles.guard';
@@ -40,6 +41,7 @@ import { envValidationSchema } from './config/env.config';
     AttendancesModule,
     AssignmentsModule,
     SubmissionsModule,
+    ProfilesModule,
     AuthModule,
   ],
   controllers: [AppController],

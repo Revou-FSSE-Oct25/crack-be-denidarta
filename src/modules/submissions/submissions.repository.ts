@@ -4,18 +4,20 @@ import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { UpdateSubmissionDto } from './dto/update-submission.dto';
 
 @Injectable()
-export class SubmissionRepository {
+export class SubmissionsRepository {
   constructor(private prisma: PrismaService) {}
 
   create(dto: CreateSubmissionDto) {
     return this.prisma.assignmentSubmission.create({ data: dto });
   }
 
-  findAll(filter: {
-    studentId?: number;
-    assignmentId?: number;
-    courseId?: number;
-  } = {}) {
+  findAll(
+    filter: {
+      studentId?: number;
+      assignmentId?: number;
+      courseId?: number;
+    } = {},
+  ) {
     return this.prisma.assignmentSubmission.findMany({
       where: {
         deletedAt: null,

@@ -50,8 +50,8 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  logout() {
-    return { message: 'Logged out successfully' };
+  logout(@Body() dto: RefreshDto) {
+    return this.authService.logout(dto.refreshToken);
   }
 
   @Post('invite/:userId')

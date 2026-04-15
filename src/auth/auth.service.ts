@@ -6,6 +6,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../modules/users/users.service';
+import { PrismaService } from '../database/prisma.service';
 import { RefreshDto } from './dto/refresh.dto';
 import { SetPasswordDto } from './dto/set-password.dto';
 
@@ -14,6 +15,7 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly prismaService: PrismaService,
   ) {}
 
   async validateUser(email: string, password: string) {
@@ -23,12 +25,35 @@ export class AuthService {
     const passwordMatch = await bcrypt.compare(password, user.password!);
     if (!passwordMatch) return null;
 
-    const { password: _, ...result } = user;
+    const { password: _password, ...result } = user;
     return result;
   }
 
   async login(user: { id: number; email: string; role: string }) {
     return this.issueTokens(user.id, user.email, user.role);
+  }
+
+  async logout(refreshToken: string) {
+    let payload: { sub: number; exp: number };
+
+    try {
+      payload = await this.jwtService.verifyAsync(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
+    await this.prismaService.tokenPurge.upsert({
+      where: { token: refreshToken },
+      update: {},
+      create: {
+        token: refreshToken,
+        expiresAt: new Date(payload.exp * 1000),
+      },
+    });
+
+    return { message: 'Logged out successfully' };
   }
 
   async refresh(dto: RefreshDto) {

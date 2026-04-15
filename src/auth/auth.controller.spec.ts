@@ -6,6 +6,7 @@ import type { Request } from 'express';
 const mockAuthService = {
   login: jest.fn(),
   refresh: jest.fn(),
+  logout: jest.fn(),
   generateInvite: jest.fn(),
   setPassword: jest.fn(),
 };
@@ -56,9 +57,15 @@ describe('AuthController', () => {
   });
 
   describe('logout', () => {
-    it('returns logged out message', () => {
-      const result = controller.logout();
-      expect(result).toEqual({ message: 'Logged out successfully' });
+    it('calls authService.logout with refreshToken and returns logged out message', async () => {
+      const dto = { refreshToken: 'valid-refresh-token' };
+      const response = { message: 'Logged out successfully' };
+      mockAuthService.logout = jest.fn().mockResolvedValue(response);
+
+      const result = await controller.logout(dto);
+
+      expect(mockAuthService.logout).toHaveBeenCalledWith(dto.refreshToken);
+      expect(result).toEqual(response);
     });
   });
 

@@ -1,42 +1,112 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { LearningMaterialsRepository } from './learning-materials.repository';
+import { LearningMaterialRepository } from './learning-materials.repository';
 import { PrismaService } from '../../database/prisma.service';
+import { MaterialType } from '@prisma/client';
 
-const mockPrisma = {
-  learningMaterial: {
-    create: jest.fn(),
-    findMany: jest.fn(),
-    findUnique: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-  },
+const mockLearningMaterial = {
+  create: jest.fn(),
+  findMany: jest.fn(),
+  findUnique: jest.fn(),
+  update: jest.fn(),
 };
 
-describe('LearningMaterialsRepository', () => {
-  let repository: LearningMaterialsRepository;
+const mockPrisma = {
+  learningMaterial: mockLearningMaterial,
+} as unknown as PrismaService;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        LearningMaterialsRepository,
-        { provide: PrismaService, useValue: mockPrisma },
-      ],
-    }).compile();
+const mockMaterial = {
+  id: 1,
+  courseId: 1,
+  title: 'Introduction to NestJS',
+  content: 'NestJS is a framework...',
+  fileUrl: null,
+  materialType: MaterialType.ARTICLE,
+  orderIndex: 1,
+  createdAt: new Date('2026-04-15T10:00:00.000Z'),
+  updatedAt: new Date('2026-04-15T10:00:00.000Z'),
+  deletedAt: null,
+};
 
-    repository = module.get<LearningMaterialsRepository>(
-      LearningMaterialsRepository,
-    );
+describe('LearningMaterialRepository', () => {
+  let repository: LearningMaterialRepository;
+
+  beforeEach(() => {
+    repository = new LearningMaterialRepository(mockPrisma);
   });
 
   afterEach(() => jest.clearAllMocks());
 
-  describe('create', () => {});
+  describe('create', () => {
+    it('creates and returns a new learning material', async () => {
+      const dto = {
+        courseId: 1,
+        title: 'Introduction to NestJS',
+        materialType: MaterialType.ARTICLE,
+      };
+      mockLearningMaterial.create.mockResolvedValue(mockMaterial);
 
-  describe('findAll', () => {});
+      const result = await repository.create(dto);
 
-  describe('findOne', () => {});
+      expect(mockLearningMaterial.create).toHaveBeenCalledWith({ data: dto });
+      expect(result).toEqual(mockMaterial);
+    });
+  });
 
-  describe('update', () => {});
+  describe('findAll', () => {
+    it('returns all learning materials excluding soft deleted records', async () => {
+      const materials = [mockMaterial, { ...mockMaterial, id: 2 }];
+      mockLearningMaterial.findMany.mockResolvedValue(materials);
 
-  describe('remove', () => {});
+      const result = await repository.findAll();
+
+      expect(mockLearningMaterial.findMany).toHaveBeenCalledWith({
+        where: { deletedAt: null },
+      });
+      expect(result).toEqual(materials);
+    });
+  });
+
+  describe('findOne', () => {
+    it('returns a learning material by id', async () => {
+      mockLearningMaterial.findUnique.mockResolvedValue(mockMaterial);
+
+      const result = await repository.findOne(1);
+
+      expect(mockLearningMaterial.findUnique).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
+      expect(result).toEqual(mockMaterial);
+    });
+  });
+
+  describe('update', () => {
+    it('updates and returns the updated learning material', async () => {
+      const dto = { title: 'Advanced NestJS', orderIndex: 2 };
+      const updated = { ...mockMaterial, ...dto };
+      mockLearningMaterial.update.mockResolvedValue(updated);
+
+      const result = await repository.update(1, dto);
+
+      expect(mockLearningMaterial.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: dto,
+      });
+      expect(result).toEqual(updated);
+    });
+  });
+
+  describe('remove', () => {
+    it('soft deletes a learning material by setting deletedAt', async () => {
+      const deletedAt = new Date('2026-04-15T10:00:00.000Z');
+      const softDeleted = { ...mockMaterial, deletedAt };
+      mockLearningMaterial.update.mockResolvedValue(softDeleted);
+
+      const result = await repository.remove(1);
+
+      expect(mockLearningMaterial.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { deletedAt: expect.any(Date) as Date },
+      });
+      expect(result).toMatchObject({ id: 1, deletedAt });
+    });
+  });
 });

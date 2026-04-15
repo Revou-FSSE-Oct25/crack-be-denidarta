@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
 }
 
@@ -64,10 +64,29 @@ enum UserStatus {
   INACTIVE
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum EducationLevel {
+  NO_FORMAL_EDUCATION
+  PRIMARY
+  SECONDARY
+  VOCATIONAL
+  ASSOCIATE
+  BACHELOR
+  MASTER
+  DOCTORATE
+  PROFESSIONAL
+}
+
 model User {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   username             String     @unique @db.VarChar(100)
@@ -78,21 +97,61 @@ model User {
   inviteToken          String?    @unique
   inviteTokenExpiresAt DateTime?
 
-  taughtCourses       Course[]               @relation("InstructorCourses")
-  enrollments         CourseEnrollment[]
-  attendances         ClassAttendance[]
-  submissions         AssignmentSubmission[]
+  taughtCourses Course[]               @relation("InstructorCourses")
+  enrollments   CourseEnrollment[]
+  attendances   ClassAttendance[]
+  submissions   AssignmentSubmission[]
+  profile       Profile?
 
   @@map("users")
 }
 
-model Course {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Profile {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  name        String      @db.VarChar(255)
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
+
+  // Personal info
+  fullName     String?   @db.VarChar(255)
+  dateOfBirth  DateTime? @db.Date
+  gender       Gender?
+
+  // Address
+  streetAddress String? @db.VarChar(500)
+  city          String? @db.VarChar(100)
+  province      String? @db.VarChar(100)
+  district      String? @db.VarChar(100)
+  subdistrict   String? @db.VarChar(100)
+  postalCode    String? @db.VarChar(20)
+  country       String? @db.VarChar(100)
+  timezone      String? @db.VarChar(100)
+
+  // Social & web presence
+  linkedinUrl     String? @db.VarChar(500)
+  githubUrl       String? @db.VarChar(500)
+  personalWebsite String? @db.VarChar(500)
+
+  // Professional info
+  shortBio           String?
+  currentOccupation  String? @db.VarChar(255)
+  company            String? @db.VarChar(255)
+  highestEducation   EducationLevel?
+  fieldOfStudy       String? @db.VarChar(255)
+
+  @@map("profiles")
+}
+
+model Course {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  name        String       @db.VarChar(255)
   description String?
   status      CourseStatus @default(DRAFT)
 
@@ -124,9 +183,9 @@ model CourseEnrollment {
 }
 
 model LearningMaterial {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   courseId     Int
@@ -142,9 +201,9 @@ model LearningMaterial {
 }
 
 model ClassSession {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   courseId   Int
@@ -177,9 +236,9 @@ model ClassAttendance {
 }
 
 model Assignment {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   courseId    Int
@@ -196,17 +255,17 @@ model Assignment {
 }
 
 model AssignmentSubmission {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   assignmentId   Int
   userId         Int
   submissionText String?
-  fileUrl        String?  @db.VarChar(500)
+  fileUrl        String?          @db.VarChar(500)
   submittedAt    DateTime?
-  grade          Decimal? @db.Decimal(5, 2)
+  grade          Decimal?         @db.Decimal(5, 2)
   passed         Boolean?
   feedback       String?
   status         SubmissionStatus @default(DRAFT)
@@ -216,4 +275,13 @@ model AssignmentSubmission {
 
   @@unique([assignmentId, userId])
   @@map("assignment_submission")
+}
+
+model TokenPurge {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("token_blacklist")
 }

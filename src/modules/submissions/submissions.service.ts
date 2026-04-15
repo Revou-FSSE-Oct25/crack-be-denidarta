@@ -1,21 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { UpdateSubmissionDto } from './dto/update-submission.dto';
-import { SubmissionRepository } from './submissions.repository';
+import { SubmissionsRepository } from './submissions.repository';
 
 @Injectable()
 export class SubmissionsService {
-  constructor(private readonly submissionRepository: SubmissionRepository) {}
+  constructor(private readonly submissionRepository: SubmissionsRepository) {}
 
   create(dto: CreateSubmissionDto) {
     return this.submissionRepository.create(dto);
   }
 
-  findAll(filter: {
-    studentId?: number;
-    assignmentId?: number;
-    courseId?: number;
-  } = {}) {
+  findAll(
+    filter: {
+      studentId?: number;
+      assignmentId?: number;
+      courseId?: number;
+    } = {},
+  ) {
     return this.submissionRepository.findAll(filter);
   }
 
