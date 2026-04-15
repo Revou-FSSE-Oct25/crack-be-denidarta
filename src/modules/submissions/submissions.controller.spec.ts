@@ -46,9 +46,11 @@ describe('SubmissionsController', () => {
       expect(result).toEqual(submissions);
     });
 
-    it('returns submissions filtered by studentId', async () => {
+    it('returns all submissions from a student across multiple courses', async () => {
       const submissions = [
         { id: 1, studentId: 3, assignmentId: 1, courseId: 1 },
+        { id: 2, studentId: 3, assignmentId: 3, courseId: 2 },
+        { id: 3, studentId: 3, assignmentId: 5, courseId: 3 },
       ];
       mockSubmissionsService.findAll.mockResolvedValue(submissions);
 
@@ -59,6 +61,7 @@ describe('SubmissionsController', () => {
         assignmentId: undefined,
         courseId: undefined,
       });
+      expect(result).toHaveLength(3);
       expect(result).toEqual(submissions);
     });
 
