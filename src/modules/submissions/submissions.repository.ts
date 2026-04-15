@@ -11,9 +11,18 @@ export class SubmissionRepository {
     return this.prisma.assignmentSubmission.create({ data: dto });
   }
 
-  findAll() {
+  findAll(filter: {
+    studentId?: number;
+    assignmentId?: number;
+    courseId?: number;
+  } = {}) {
     return this.prisma.assignmentSubmission.findMany({
-      where: { deletedAt: null },
+      where: {
+        deletedAt: null,
+        ...(filter.studentId && { studentId: filter.studentId }),
+        ...(filter.assignmentId && { assignmentId: filter.assignmentId }),
+        ...(filter.courseId && { courseId: filter.courseId }),
+      },
     });
   }
 

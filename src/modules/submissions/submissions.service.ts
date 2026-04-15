@@ -11,8 +11,12 @@ export class SubmissionsService {
     return this.submissionRepository.create(dto);
   }
 
-  findAll() {
-    return this.submissionRepository.findAll();
+  findAll(filter: {
+    studentId?: number;
+    assignmentId?: number;
+    courseId?: number;
+  } = {}) {
+    return this.submissionRepository.findAll(filter);
   }
 
   findOne(id: number) {
