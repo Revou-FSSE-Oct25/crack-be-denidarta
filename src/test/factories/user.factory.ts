@@ -1,0 +1,30 @@
+import { UserRole, UserStatus } from '@prisma/client';
+import { faker } from '@faker-js/faker';
+
+interface MockUser {
+  id: number;
+  username: string;
+  email: string;
+  role: UserRole;
+  status: UserStatus;
+  createdAt: Date;
+}
+
+export function createMockUser(overrides: Partial<MockUser> = {}): MockUser {
+  return {
+    id: faker.number.int({ min: 1, max: 1000 }),
+    username: faker.internet.username(),
+    email: faker.internet.email(),
+    role: UserRole.STUDENT,
+    status: UserStatus.ACTIVE,
+    createdAt: faker.date.past(),
+    ...overrides,
+  };
+}
+
+export function createMockUserList(
+  count: number,
+  overrides: Partial<MockUser> = {},
+): MockUser[] {
+  return Array.from({ length: count }, () => createMockUser(overrides));
+}
