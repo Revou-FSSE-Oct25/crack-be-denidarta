@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ClassSessionsRepository } from './class-sessions.repository';
+import { ClassSessionRepository } from './class-sessions.repository';
 import { PrismaService } from '../../database/prisma.service';
 
 const mockPrisma = {
@@ -12,29 +12,18 @@ const mockPrisma = {
   },
 };
 
-describe('ClassSessionsRepository', () => {
-  let repository: ClassSessionsRepository;
+describe('ClassSessionRepository', () => {
+  afterEach(() => jest.clearAllMocks());
 
-  beforeEach(async () => {
+  it('should be defined', async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        ClassSessionsRepository,
+        ClassSessionRepository,
         { provide: PrismaService, useValue: mockPrisma },
       ],
     }).compile();
 
-    repository = module.get<ClassSessionsRepository>(ClassSessionsRepository);
+    const repository: unknown = module.get(ClassSessionRepository);
+    expect(repository).toBeInstanceOf(ClassSessionRepository);
   });
-
-  afterEach(() => jest.clearAllMocks());
-
-  describe('create', () => {});
-
-  describe('findAll', () => {});
-
-  describe('findOne', () => {});
-
-  describe('update', () => {});
-
-  describe('remove', () => {});
 });

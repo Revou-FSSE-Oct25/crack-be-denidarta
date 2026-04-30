@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LearningMaterialsService } from './learning-materials.service';
-import { LearningMaterialsRepository } from './learning-materials.repository';
+import { LearningMaterialRepository } from './learning-materials.repository';
 
 const mockLearningMaterialsRepository = {
   create: jest.fn(),
@@ -11,31 +11,20 @@ const mockLearningMaterialsRepository = {
 };
 
 describe('LearningMaterialsService', () => {
-  let service: LearningMaterialsService;
+  afterEach(() => jest.clearAllMocks());
 
-  beforeEach(async () => {
+  it('should be defined', async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         LearningMaterialsService,
         {
-          provide: LearningMaterialsRepository,
+          provide: LearningMaterialRepository,
           useValue: mockLearningMaterialsRepository,
         },
       ],
     }).compile();
 
-    service = module.get<LearningMaterialsService>(LearningMaterialsService);
+    const service: unknown = module.get(LearningMaterialsService);
+    expect(service).toBeInstanceOf(LearningMaterialsService);
   });
-
-  afterEach(() => jest.clearAllMocks());
-
-  describe('create', () => {});
-
-  describe('findAll', () => {});
-
-  describe('findOne', () => {});
-
-  describe('update', () => {});
-
-  describe('remove', () => {});
 });

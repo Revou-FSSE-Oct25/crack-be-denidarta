@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CoursesService } from './courses.service';
-import { CoursesRepository } from './courses.repository';
+import { CourseRepository } from './courses.repository';
 
 const mockCoursesRepository = {
   create: jest.fn(),
@@ -11,28 +11,17 @@ const mockCoursesRepository = {
 };
 
 describe('CoursesService', () => {
-  let service: CoursesService;
+  afterEach(() => jest.clearAllMocks());
 
-  beforeEach(async () => {
+  it('should be defined', async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CoursesService,
-        { provide: CoursesRepository, useValue: mockCoursesRepository },
+        { provide: CourseRepository, useValue: mockCoursesRepository },
       ],
     }).compile();
 
-    service = module.get<CoursesService>(CoursesService);
+    const service: unknown = module.get(CoursesService);
+    expect(service).toBeInstanceOf(CoursesService);
   });
-
-  afterEach(() => jest.clearAllMocks());
-
-  describe('create', () => {});
-
-  describe('findAll', () => {});
-
-  describe('findOne', () => {});
-
-  describe('update', () => {});
-
-  describe('remove', () => {});
 });

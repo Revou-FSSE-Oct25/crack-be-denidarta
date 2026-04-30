@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ClassSessionsService } from './class-sessions.service';
-import { ClassSessionsRepository } from './class-sessions.repository';
+import { ClassSessionRepository } from './class-sessions.repository';
 
 const mockClassSessionsRepository = {
   create: jest.fn(),
@@ -11,31 +11,20 @@ const mockClassSessionsRepository = {
 };
 
 describe('ClassSessionsService', () => {
-  let service: ClassSessionsService;
+  afterEach(() => jest.clearAllMocks());
 
-  beforeEach(async () => {
+  it('should be defined', async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ClassSessionsService,
         {
-          provide: ClassSessionsRepository,
+          provide: ClassSessionRepository,
           useValue: mockClassSessionsRepository,
         },
       ],
     }).compile();
 
-    service = module.get<ClassSessionsService>(ClassSessionsService);
+    const service: unknown = module.get(ClassSessionsService);
+    expect(service).toBeInstanceOf(ClassSessionsService);
   });
-
-  afterEach(() => jest.clearAllMocks());
-
-  describe('create', () => {});
-
-  describe('findAll', () => {});
-
-  describe('findOne', () => {});
-
-  describe('update', () => {});
-
-  describe('remove', () => {});
 });

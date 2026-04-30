@@ -45,7 +45,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const raw = (res as Record<string, unknown>).message;
         message = Array.isArray(raw)
           ? raw.join('; ')
-          : String(raw ?? exception.message);
+          : this.stringifyMessage(raw, exception.message);
       }
       return { statusCode: exception.getStatus(), message };
     }
@@ -79,5 +79,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       message: 'Internal server error',
     };
+  }
+
+  private stringifyMessage(value: unknown, fallback: string): string {
+    return typeof value === 'string' ? value : fallback;
   }
 }

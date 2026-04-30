@@ -11,9 +11,9 @@ const mockClassSessionsService = {
 };
 
 describe('ClassSessionsController', () => {
-  let controller: ClassSessionsController;
+  afterEach(() => jest.clearAllMocks());
 
-  beforeEach(async () => {
+  it('should be defined', async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ClassSessionsController],
       providers: [
@@ -21,18 +21,7 @@ describe('ClassSessionsController', () => {
       ],
     }).compile();
 
-    controller = module.get<ClassSessionsController>(ClassSessionsController);
+    const controller: unknown = module.get(ClassSessionsController);
+    expect(controller).toBeInstanceOf(ClassSessionsController);
   });
-
-  afterEach(() => jest.clearAllMocks());
-
-  describe('create', () => {});
-
-  describe('findAll', () => {});
-
-  describe('findOne', () => {});
-
-  describe('update', () => {});
-
-  describe('remove', () => {});
 });

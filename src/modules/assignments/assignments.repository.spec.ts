@@ -12,9 +12,9 @@ const mockPrisma = {
 };
 
 describe('AssignmentRepository', () => {
-  let repository: AssignmentRepository;
+  afterEach(() => jest.clearAllMocks());
 
-  beforeEach(async () => {
+  it('should be defined', async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AssignmentRepository,
@@ -22,18 +22,7 @@ describe('AssignmentRepository', () => {
       ],
     }).compile();
 
-    repository = module.get<AssignmentRepository>(AssignmentRepository);
+    const repository: unknown = module.get(AssignmentRepository);
+    expect(repository).toBeInstanceOf(AssignmentRepository);
   });
-
-  afterEach(() => jest.clearAllMocks());
-
-  describe('create', () => {});
-
-  describe('findAll', () => {});
-
-  describe('findOne', () => {});
-
-  describe('update', () => {});
-
-  describe('remove', () => {});
 });

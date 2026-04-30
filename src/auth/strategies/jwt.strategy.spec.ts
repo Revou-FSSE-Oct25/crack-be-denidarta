@@ -14,10 +14,10 @@ describe('JwtStrategy', () => {
     strategy = module.get<JwtStrategy>(JwtStrategy);
   });
 
-  it('returns the payload as-is', async () => {
+  it('returns the payload as-is', () => {
     const payload = { sub: 1, email: 'test@example.com', role: 'STUDENT' };
 
-    const result = await strategy.validate(payload);
+    const result = strategy.validate(payload);
 
     expect(result).toEqual({
       sub: 1,

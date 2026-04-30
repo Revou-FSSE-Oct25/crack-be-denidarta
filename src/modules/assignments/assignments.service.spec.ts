@@ -11,9 +11,9 @@ const mockAssignmentRepository = {
 };
 
 describe('AssignmentsService', () => {
-  let service: AssignmentsService;
+  afterEach(() => jest.clearAllMocks());
 
-  beforeEach(async () => {
+  it('should be defined', async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AssignmentsService,
@@ -21,18 +21,7 @@ describe('AssignmentsService', () => {
       ],
     }).compile();
 
-    service = module.get<AssignmentsService>(AssignmentsService);
+    const service: unknown = module.get(AssignmentsService);
+    expect(service).toBeInstanceOf(AssignmentsService);
   });
-
-  afterEach(() => jest.clearAllMocks());
-
-  describe('create', () => {});
-
-  describe('findAll', () => {});
-
-  describe('findOne', () => {});
-
-  describe('update', () => {});
-
-  describe('remove', () => {});
 });

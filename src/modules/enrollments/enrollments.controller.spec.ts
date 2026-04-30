@@ -11,9 +11,9 @@ const mockEnrollmentsService = {
 };
 
 describe('EnrollmentsController', () => {
-  let controller: EnrollmentsController;
+  afterEach(() => jest.clearAllMocks());
 
-  beforeEach(async () => {
+  it('should be defined', async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [EnrollmentsController],
       providers: [
@@ -21,18 +21,7 @@ describe('EnrollmentsController', () => {
       ],
     }).compile();
 
-    controller = module.get<EnrollmentsController>(EnrollmentsController);
+    const controller: unknown = module.get(EnrollmentsController);
+    expect(controller).toBeInstanceOf(EnrollmentsController);
   });
-
-  afterEach(() => jest.clearAllMocks());
-
-  describe('create', () => {});
-
-  describe('findAll', () => {});
-
-  describe('findOne', () => {});
-
-  describe('update', () => {});
-
-  describe('remove', () => {});
 });

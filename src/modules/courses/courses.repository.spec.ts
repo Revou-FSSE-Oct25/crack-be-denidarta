@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CoursesRepository } from './courses.repository';
+import { CourseRepository } from './courses.repository';
 import { PrismaService } from '../../database/prisma.service';
 
 const mockPrisma = {
@@ -12,29 +12,18 @@ const mockPrisma = {
   },
 };
 
-describe('CoursesRepository', () => {
-  let repository: CoursesRepository;
+describe('CourseRepository', () => {
+  afterEach(() => jest.clearAllMocks());
 
-  beforeEach(async () => {
+  it('should be defined', async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        CoursesRepository,
+        CourseRepository,
         { provide: PrismaService, useValue: mockPrisma },
       ],
     }).compile();
 
-    repository = module.get<CoursesRepository>(CoursesRepository);
+    const repository: unknown = module.get(CourseRepository);
+    expect(repository).toBeInstanceOf(CourseRepository);
   });
-
-  afterEach(() => jest.clearAllMocks());
-
-  describe('create', () => {});
-
-  describe('findAll', () => {});
-
-  describe('findOne', () => {});
-
-  describe('update', () => {});
-
-  describe('remove', () => {});
 });
