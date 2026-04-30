@@ -1,12 +1,12 @@
-import { IsEnum, IsInt, IsOptional } from 'class-validator';
+import { IsEnum, IsOptional, IsUUID } from 'class-validator';
 import { EnrollmentStatus } from '@prisma/client';
 
 export class CreateEnrollmentDto {
-  @IsInt()
-  courseId: number;
+  @IsUUID('4')
+  courseId: string;
 
-  @IsInt()
-  userId: number;
+  @IsUUID('4')
+  userId: string;
 
   @IsOptional()
   @IsEnum(EnrollmentStatus)

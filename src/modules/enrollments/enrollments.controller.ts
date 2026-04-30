@@ -27,7 +27,7 @@ export class EnrollmentsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.enrollmentsService.findOne(+id);
+    return this.enrollmentsService.findOne(id);
   }
 
   @Patch(':id')
@@ -35,11 +35,11 @@ export class EnrollmentsController {
     @Param('id') id: string,
     @Body() updateEnrollmentDto: UpdateEnrollmentDto,
   ) {
-    return this.enrollmentsService.update(+id, updateEnrollmentDto);
+    return this.enrollmentsService.update(id, updateEnrollmentDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.enrollmentsService.remove(+id);
+    return this.enrollmentsService.remove(id);
   }
 }

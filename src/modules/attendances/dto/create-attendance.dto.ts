@@ -1,12 +1,12 @@
-import { IsEnum, IsInt, IsOptional } from 'class-validator';
+import { IsEnum, IsOptional, IsUUID } from 'class-validator';
 import { AttendanceStatus } from '@prisma/client';
 
 export class CreateAttendanceDto {
-  @IsInt()
-  classSessionId: number;
+  @IsUUID('4')
+  classSessionId: string;
 
-  @IsInt()
-  userId: number;
+  @IsUUID('4')
+  userId: string;
 
   @IsOptional()
   @IsEnum(AttendanceStatus)

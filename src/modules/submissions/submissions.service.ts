@@ -13,23 +13,23 @@ export class SubmissionsService {
 
   findAll(
     filter: {
-      studentId?: number;
-      assignmentId?: number;
-      courseId?: number;
+      studentId?: string;
+      assignmentId?: string;
+      courseId?: string;
     } = {},
   ) {
     return this.submissionRepository.findAll(filter);
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.submissionRepository.findOne(id);
   }
 
-  update(id: number, dto: UpdateSubmissionDto) {
+  update(id: string, dto: UpdateSubmissionDto) {
     return this.submissionRepository.update(id, dto);
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.submissionRepository.remove(id);
   }
 }

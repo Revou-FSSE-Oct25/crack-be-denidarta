@@ -17,15 +17,15 @@ export class ClassSessionsService {
     return this.classSessionRepository.findAll();
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.classSessionRepository.findOne(id);
   }
 
-  update(id: number, dto: UpdateClassSessionDto) {
+  update(id: string, dto: UpdateClassSessionDto) {
     return this.classSessionRepository.update(id, dto);
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.classSessionRepository.remove(id);
   }
 }

@@ -15,15 +15,15 @@ export class AttendancesService {
     return this.attendanceRepository.findAll();
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.attendanceRepository.findOne(id);
   }
 
-  update(id: number, dto: UpdateAttendanceDto) {
+  update(id: string, dto: UpdateAttendanceDto) {
     return this.attendanceRepository.update(id, dto);
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.attendanceRepository.remove(id);
   }
 }

@@ -25,7 +25,7 @@ export class UserRepository {
     });
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
@@ -46,18 +46,18 @@ export class UserRepository {
 
   // ---- Update ----
 
-  update(id: number, dto: UpdateUserDto) {
+  update(id: string, dto: UpdateUserDto) {
     return this.prisma.user.update({ where: { id }, data: dto });
   }
 
-  inviteUser(id: number, inviteToken: string, inviteTokenExpiresAt: Date) {
+  inviteUser(id: string, inviteToken: string, inviteTokenExpiresAt: Date) {
     return this.prisma.user.update({
       where: { id },
       data: { inviteToken, inviteTokenExpiresAt, status: 'INVITED' },
     });
   }
 
-  activateUser(id: number, hashedPassword: string) {
+  activateUser(id: string, hashedPassword: string) {
     return this.prisma.user.update({
       where: { id },
       data: {
@@ -71,7 +71,7 @@ export class UserRepository {
 
   // ---- Delete ----
 
-  remove(id: number) {
+  remove(id: string) {
     return this.prisma.user.update({
       where: { id },
       data: { deletedAt: new Date() },

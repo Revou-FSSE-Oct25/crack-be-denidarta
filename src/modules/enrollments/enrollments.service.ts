@@ -15,15 +15,15 @@ export class EnrollmentsService {
     return this.enrollmentRepository.findAll();
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.enrollmentRepository.findOne(id);
   }
 
-  update(id: number, dto: UpdateEnrollmentDto) {
+  update(id: string, dto: UpdateEnrollmentDto) {
     return this.enrollmentRepository.update(id, dto);
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.enrollmentRepository.remove(id);
   }
 }

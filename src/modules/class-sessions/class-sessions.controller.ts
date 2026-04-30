@@ -27,7 +27,7 @@ export class ClassSessionsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.classSessionsService.findOne(+id);
+    return this.classSessionsService.findOne(id);
   }
 
   @Patch(':id')
@@ -35,11 +35,11 @@ export class ClassSessionsController {
     @Param('id') id: string,
     @Body() updateClassSessionDto: UpdateClassSessionDto,
   ) {
-    return this.classSessionsService.update(+id, updateClassSessionDto);
+    return this.classSessionsService.update(id, updateClassSessionDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.classSessionsService.remove(+id);
+    return this.classSessionsService.remove(id);
   }
 }

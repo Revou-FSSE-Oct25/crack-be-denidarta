@@ -17,15 +17,15 @@ export class LearningMaterialRepository {
     });
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.prisma.learningMaterial.findUnique({ where: { id } });
   }
 
-  update(id: number, dto: UpdateLearningMaterialDto) {
+  update(id: string, dto: UpdateLearningMaterialDto) {
     return this.prisma.learningMaterial.update({ where: { id }, data: dto });
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.prisma.learningMaterial.update({
       where: { id },
       data: { deletedAt: new Date() },

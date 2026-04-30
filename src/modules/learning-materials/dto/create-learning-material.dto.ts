@@ -1,17 +1,17 @@
 import {
   IsEnum,
-  IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
 } from 'class-validator';
 import { MaterialType } from '@prisma/client';
 
 export class CreateLearningMaterialDto {
-  @IsInt()
-  courseId: number;
+  @IsUUID('4')
+  courseId: string;
 
   @IsString()
   @IsNotEmpty()

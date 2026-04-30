@@ -1,18 +1,18 @@
 import {
   IsDateString,
   IsEnum,
-  IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
 } from 'class-validator';
 import { AssignmentStatus } from '@prisma/client';
 
 export class CreateAssignmentDto {
-  @IsInt()
-  courseId: number;
+  @IsUUID('4')
+  courseId: string;
 
   @IsString()
   @IsNotEmpty()

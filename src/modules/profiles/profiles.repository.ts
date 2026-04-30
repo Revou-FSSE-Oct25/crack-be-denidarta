@@ -9,7 +9,7 @@ export class ProfilesRepository {
 
   // ---- Create ----
 
-  create(userId: number, dto: CreateProfileDto) {
+  create(userId: string, dto: CreateProfileDto) {
     return this.prisma.profile.create({
       data: { userId, ...dto },
     });
@@ -21,11 +21,11 @@ export class ProfilesRepository {
     return this.prisma.profile.findMany({ where: { deletedAt: null } });
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.prisma.profile.findUnique({ where: { id } });
   }
 
-  findByUserId(userId: number) {
+  findByUserId(userId: string) {
     return this.prisma.profile.findUnique({
       where: { userId },
     });
@@ -33,11 +33,11 @@ export class ProfilesRepository {
 
   // ---- Update ----
 
-  update(id: number, dto: UpdateProfileDto) {
+  update(id: string, dto: UpdateProfileDto) {
     return this.prisma.profile.update({ where: { id }, data: dto });
   }
 
-  upsertByUserId(userId: number, dto: UpdateProfileDto) {
+  upsertByUserId(userId: string, dto: UpdateProfileDto) {
     return this.prisma.profile.upsert({
       where: { userId },
       create: { userId, ...dto },
@@ -47,7 +47,7 @@ export class ProfilesRepository {
 
   // ---- Delete ----
 
-  remove(id: number) {
+  remove(id: string) {
     return this.prisma.profile.update({
       where: { id },
       data: { deletedAt: new Date() },

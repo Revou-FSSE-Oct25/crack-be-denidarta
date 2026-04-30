@@ -29,7 +29,7 @@ export class LearningMaterialsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.learningMaterialsService.findOne(+id);
+    return this.learningMaterialsService.findOne(id);
   }
 
   @Patch(':id')
@@ -37,11 +37,11 @@ export class LearningMaterialsController {
     @Param('id') id: string,
     @Body() updateLearningMaterialDto: UpdateLearningMaterialDto,
   ) {
-    return this.learningMaterialsService.update(+id, updateLearningMaterialDto);
+    return this.learningMaterialsService.update(id, updateLearningMaterialDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.learningMaterialsService.remove(+id);
+    return this.learningMaterialsService.remove(id);
   }
 }

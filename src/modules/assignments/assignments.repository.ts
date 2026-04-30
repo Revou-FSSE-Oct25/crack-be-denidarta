@@ -19,19 +19,19 @@ export class AssignmentRepository {
     return this.prisma.assignment.findMany({ where: { deletedAt: null } });
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.prisma.assignment.findUnique({ where: { id } });
   }
 
   // ---- Update ----
 
-  update(id: number, dto: UpdateAssignmentDto) {
+  update(id: string, dto: UpdateAssignmentDto) {
     return this.prisma.assignment.update({ where: { id }, data: dto });
   }
 
   // ---- Delete ----
 
-  remove(id: number) {
+  remove(id: string) {
     return this.prisma.assignment.update({
       where: { id },
       data: { deletedAt: new Date() },

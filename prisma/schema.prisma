@@ -84,7 +84,7 @@ enum EducationLevel {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
+  id        String    @id @default(uuid())
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
@@ -107,13 +107,13 @@ model User {
 }
 
 model Profile {
-  id        Int       @id @default(autoincrement())
+  id        String    @id @default(uuid())
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  userId Int  @unique
-  user   User @relation(fields: [userId], references: [id])
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
 
   // Personal info
   fullName     String?   @db.VarChar(255)
@@ -146,7 +146,7 @@ model Profile {
 }
 
 model Course {
-  id        Int       @id @default(autoincrement())
+  id        String    @id @default(uuid())
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
@@ -155,8 +155,8 @@ model Course {
   description String?
   status      CourseStatus @default(DRAFT)
 
-  instructorId Int
-  instructor   User @relation("InstructorCourses", fields: [instructorId], references: [id])
+  instructorId String
+  instructor   User   @relation("InstructorCourses", fields: [instructorId], references: [id])
 
   enrollments       CourseEnrollment[]
   learningMaterials LearningMaterial[]
@@ -167,12 +167,12 @@ model Course {
 }
 
 model CourseEnrollment {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  courseId Int
-  userId   Int
+  courseId String
+  userId   String
   status   EnrollmentStatus @default(ENROLLED)
 
   course Course @relation(fields: [courseId], references: [id])
@@ -183,12 +183,12 @@ model CourseEnrollment {
 }
 
 model LearningMaterial {
-  id        Int       @id @default(autoincrement())
+  id        String    @id @default(uuid())
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  courseId     Int
+  courseId     String
   title        String       @db.VarChar(255)
   content      String?
   fileUrl      String?      @db.VarChar(500)
@@ -201,12 +201,12 @@ model LearningMaterial {
 }
 
 model ClassSession {
-  id        Int       @id @default(autoincrement())
+  id        String    @id @default(uuid())
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  courseId   Int
+  courseId   String
   title      String   @db.VarChar(255)
   startsAt   DateTime
   endsAt     DateTime
@@ -220,12 +220,12 @@ model ClassSession {
 }
 
 model ClassAttendance {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  classSessionId Int
-  userId         Int
+  classSessionId String
+  userId         String
   status         AttendanceStatus @default(PRESENT)
 
   classSession ClassSession @relation(fields: [classSessionId], references: [id])
@@ -236,12 +236,12 @@ model ClassAttendance {
 }
 
 model Assignment {
-  id        Int       @id @default(autoincrement())
+  id        String    @id @default(uuid())
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  courseId    Int
+  courseId    String
   title       String           @db.VarChar(255)
   description String?
   dueDate     DateTime
@@ -255,13 +255,13 @@ model Assignment {
 }
 
 model AssignmentSubmission {
-  id        Int       @id @default(autoincrement())
+  id        String    @id @default(uuid())
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  assignmentId   Int
-  userId         Int
+  assignmentId   String
+  userId         String
   submissionText String?
   fileUrl        String?          @db.VarChar(500)
   submittedAt    DateTime?
@@ -278,7 +278,7 @@ model AssignmentSubmission {
 }
 
 model TokenPurge {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())

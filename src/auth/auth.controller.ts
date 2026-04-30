@@ -5,7 +5,6 @@ import {
   HttpCode,
   HttpStatus,
   Param,
-  ParseIntPipe,
   Post,
   Req,
   UseGuards,
@@ -32,7 +31,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   login(@Req() req: Request) {
     return this.authService.login(
-      req.user as { id: number; email: string; role: string },
+      req.user as { id: string; email: string; role: string },
     );
   }
 
@@ -58,7 +57,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Roles(UserRole.ADMIN)
   @UseGuards(RolesGuard)
-  generateInvite(@Param('userId', ParseIntPipe) userId: number) {
+  generateInvite(@Param('userId') userId: string) {
     return this.authService.generateInvite(userId);
   }
 

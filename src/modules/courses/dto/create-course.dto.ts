@@ -1,9 +1,9 @@
 import {
   IsEnum,
-  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
 } from 'class-validator';
 import { CourseStatus } from '@prisma/client';
@@ -22,6 +22,6 @@ export class CreateCourseDto {
   @IsEnum(CourseStatus)
   status?: CourseStatus;
 
-  @IsInt()
-  instructorId: number;
+  @IsUUID('4')
+  instructorId: string;
 }

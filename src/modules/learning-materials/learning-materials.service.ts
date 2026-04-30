@@ -17,15 +17,15 @@ export class LearningMaterialsService {
     return this.learningMaterialRepository.findAll();
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.learningMaterialRepository.findOne(id);
   }
 
-  update(id: number, dto: UpdateLearningMaterialDto) {
+  update(id: string, dto: UpdateLearningMaterialDto) {
     return this.learningMaterialRepository.update(id, dto);
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.learningMaterialRepository.remove(id);
   }
 }

@@ -29,12 +29,12 @@ export class AuthService {
     return result;
   }
 
-  async login(user: { id: number; email: string; role: string }) {
+  async login(user: { id: string; email: string; role: string }) {
     return this.issueTokens(user.id, user.email, user.role);
   }
 
   async logout(refreshToken: string) {
-    let payload: { sub: number; exp: number };
+    let payload: { sub: string; exp: number };
 
     try {
       payload = await this.jwtService.verifyAsync(refreshToken, {
@@ -57,7 +57,7 @@ export class AuthService {
   }
 
   async refresh(dto: RefreshDto) {
-    let payload: { sub: number };
+    let payload: { sub: string };
     try {
       payload = await this.jwtService.verifyAsync(dto.refreshToken, {
         secret: process.env.JWT_REFRESH_SECRET,
@@ -82,7 +82,7 @@ export class AuthService {
     return { accessToken };
   }
 
-  async generateInvite(userId: number) {
+  async generateInvite(userId: string) {
     const user = await this.usersService.findOne(userId);
     if (!user) throw new BadRequestException('User not found');
 
@@ -114,7 +114,7 @@ export class AuthService {
     return { message: 'Password set successfully. You can now log in.' };
   }
 
-  private async issueTokens(userId: number, email: string, role: string) {
+  private async issueTokens(userId: string, email: string, role: string) {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
         { sub: userId, email, role },

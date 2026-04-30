@@ -28,15 +28,15 @@ export class SubmissionsController {
     @Query('courseId') courseId?: string,
   ) {
     return this.submissionsService.findAll({
-      studentId: studentId ? +studentId : undefined,
-      assignmentId: assignmentId ? +assignmentId : undefined,
-      courseId: courseId ? +courseId : undefined,
+      studentId: studentId ? studentId : undefined,
+      assignmentId: assignmentId ? assignmentId : undefined,
+      courseId: courseId ? courseId : undefined,
     });
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.submissionsService.findOne(+id);
+    return this.submissionsService.findOne(id);
   }
 
   @Patch(':id')
@@ -44,11 +44,11 @@ export class SubmissionsController {
     @Param('id') id: string,
     @Body() updateSubmissionDto: UpdateSubmissionDto,
   ) {
-    return this.submissionsService.update(+id, updateSubmissionDto);
+    return this.submissionsService.update(id, updateSubmissionDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.submissionsService.remove(+id);
+    return this.submissionsService.remove(id);
   }
 }

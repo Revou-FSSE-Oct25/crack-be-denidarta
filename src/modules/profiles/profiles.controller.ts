@@ -22,7 +22,7 @@ export class ProfilesController {
     @Param('userId') userId: string,
     @Body() createProfileDto: CreateProfileDto,
   ) {
-    return this.profilesService.create(+userId, createProfileDto);
+    return this.profilesService.create(userId, createProfileDto);
   }
 
   // ---- Read ----
@@ -34,19 +34,19 @@ export class ProfilesController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.profilesService.findOne(+id);
+    return this.profilesService.findOne(id);
   }
 
   @Get('users/:userId')
   findByUserId(@Param('userId') userId: string) {
-    return this.profilesService.findByUserId(+userId);
+    return this.profilesService.findByUserId(userId);
   }
 
   // ---- Update ----
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateProfileDto: UpdateProfileDto) {
-    return this.profilesService.update(+id, updateProfileDto);
+    return this.profilesService.update(id, updateProfileDto);
   }
 
   @Patch('users/:userId')
@@ -54,13 +54,13 @@ export class ProfilesController {
     @Param('userId') userId: string,
     @Body() updateProfileDto: UpdateProfileDto,
   ) {
-    return this.profilesService.upsertByUserId(+userId, updateProfileDto);
+    return this.profilesService.upsertByUserId(userId, updateProfileDto);
   }
 
   // ---- Delete ----
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.profilesService.remove(+id);
+    return this.profilesService.remove(id);
   }
 }

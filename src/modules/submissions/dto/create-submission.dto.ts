@@ -2,20 +2,20 @@ import {
   IsBoolean,
   IsDateString,
   IsEnum,
-  IsInt,
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
 } from 'class-validator';
 import { SubmissionStatus } from '@prisma/client';
 
 export class CreateSubmissionDto {
-  @IsInt()
-  assignmentId: number;
+  @IsUUID('4')
+  assignmentId: string;
 
-  @IsInt()
-  userId: number;
+  @IsUUID('4')
+  userId: string;
 
   @IsOptional()
   @IsString()

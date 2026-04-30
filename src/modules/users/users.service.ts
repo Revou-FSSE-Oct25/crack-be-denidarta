@@ -23,7 +23,7 @@ export class UsersService {
     return this.userRepository.findByRole(role);
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.userRepository.findOne(id);
   }
 
@@ -41,11 +41,11 @@ export class UsersService {
 
   // ---- Update ----
 
-  update(id: number, dto: UpdateUserDto) {
+  update(id: string, dto: UpdateUserDto) {
     return this.userRepository.update(id, dto);
   }
 
-  setInviteToken(id: number, inviteToken: string, inviteTokenExpiresAt: Date) {
+  setInviteToken(id: string, inviteToken: string, inviteTokenExpiresAt: Date) {
     return this.userRepository.inviteUser(
       id,
       inviteToken,
@@ -53,13 +53,13 @@ export class UsersService {
     );
   }
 
-  activateUser(id: number, hashedPassword: string) {
+  activateUser(id: string, hashedPassword: string) {
     return this.userRepository.activateUser(id, hashedPassword);
   }
 
   // ---- Delete ----
 
-  remove(id: number) {
+  remove(id: string) {
     return this.userRepository.remove(id);
   }
 }

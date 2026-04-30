@@ -9,7 +9,7 @@ export class ProfilesService {
 
   // ---- Create ----
 
-  create(userId: number, dto: CreateProfileDto) {
+  create(userId: string, dto: CreateProfileDto) {
     return this.profilesRepository.create(userId, dto);
   }
 
@@ -19,27 +19,27 @@ export class ProfilesService {
     return this.profilesRepository.findAll();
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.profilesRepository.findOne(id);
   }
 
-  findByUserId(userId: number) {
+  findByUserId(userId: string) {
     return this.profilesRepository.findByUserId(userId);
   }
 
   // ---- Update ----
 
-  update(id: number, dto: UpdateProfileDto) {
+  update(id: string, dto: UpdateProfileDto) {
     return this.profilesRepository.update(id, dto);
   }
 
-  upsertByUserId(userId: number, dto: UpdateProfileDto) {
+  upsertByUserId(userId: string, dto: UpdateProfileDto) {
     return this.profilesRepository.upsertByUserId(userId, dto);
   }
 
   // ---- Delete ----
 
-  remove(id: number) {
+  remove(id: string) {
     return this.profilesRepository.remove(id);
   }
 }

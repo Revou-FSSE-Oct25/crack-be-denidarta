@@ -2,7 +2,7 @@ import { UserRole, UserStatus } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 
 interface MockUser {
-  id: number;
+  id: string;
   username: string;
   email: string;
   role: UserRole;
@@ -12,7 +12,7 @@ interface MockUser {
 
 export function createMockUser(overrides: Partial<MockUser> = {}): MockUser {
   return {
-    id: faker.number.int({ min: 1, max: 1000 }),
+    id: faker.string.uuid(),
     username: faker.internet.username(),
     email: faker.internet.email(),
     role: UserRole.STUDENT,

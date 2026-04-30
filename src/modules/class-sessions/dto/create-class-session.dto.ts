@@ -1,16 +1,16 @@
 import {
   IsDateString,
-  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
   IsUrl,
+  IsUUID,
   MaxLength,
 } from 'class-validator';
 
 export class CreateClassSessionDto {
-  @IsInt()
-  courseId: number;
+  @IsUUID('4')
+  courseId: string;
 
   @IsString()
   @IsNotEmpty()

@@ -15,15 +15,15 @@ export class CoursesService {
     return this.courseRepository.findAll();
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.courseRepository.findOne(id);
   }
 
-  update(id: number, dto: UpdateCourseDto) {
+  update(id: string, dto: UpdateCourseDto) {
     return this.courseRepository.update(id, dto);
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.courseRepository.remove(id);
   }
 }

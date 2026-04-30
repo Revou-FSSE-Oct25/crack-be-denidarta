@@ -15,15 +15,15 @@ export class CourseRepository {
     return this.prisma.course.findMany({ where: { deletedAt: null } });
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.prisma.course.findUnique({ where: { id } });
   }
 
-  update(id: number, dto: UpdateCourseDto) {
+  update(id: string, dto: UpdateCourseDto) {
     return this.prisma.course.update({ where: { id }, data: dto });
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.prisma.course.update({
       where: { id },
       data: { deletedAt: new Date() },

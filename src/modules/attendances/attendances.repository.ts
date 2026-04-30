@@ -15,15 +15,15 @@ export class AttendanceRepository {
     return this.prisma.classAttendance.findMany();
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.prisma.classAttendance.findUnique({ where: { id } });
   }
 
-  update(id: number, dto: UpdateAttendanceDto) {
+  update(id: string, dto: UpdateAttendanceDto) {
     return this.prisma.classAttendance.update({ where: { id }, data: dto });
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.prisma.classAttendance.delete({ where: { id } });
   }
 }

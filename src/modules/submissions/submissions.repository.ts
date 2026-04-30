@@ -13,9 +13,9 @@ export class SubmissionsRepository {
 
   findAll(
     filter: {
-      studentId?: number;
-      assignmentId?: number;
-      courseId?: number;
+      studentId?: string;
+      assignmentId?: string;
+      courseId?: string;
     } = {},
   ) {
     return this.prisma.assignmentSubmission.findMany({
@@ -28,18 +28,18 @@ export class SubmissionsRepository {
     });
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.prisma.assignmentSubmission.findUnique({ where: { id } });
   }
 
-  update(id: number, dto: UpdateSubmissionDto) {
+  update(id: string, dto: UpdateSubmissionDto) {
     return this.prisma.assignmentSubmission.update({
       where: { id },
       data: dto,
     });
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.prisma.assignmentSubmission.update({
       where: { id },
       data: { deletedAt: new Date() },

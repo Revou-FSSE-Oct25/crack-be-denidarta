@@ -15,15 +15,15 @@ export class ClassSessionRepository {
     return this.prisma.classSession.findMany({ where: { deletedAt: null } });
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.prisma.classSession.findUnique({ where: { id } });
   }
 
-  update(id: number, dto: UpdateClassSessionDto) {
+  update(id: string, dto: UpdateClassSessionDto) {
     return this.prisma.classSession.update({ where: { id }, data: dto });
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.prisma.classSession.update({
       where: { id },
       data: { deletedAt: new Date() },

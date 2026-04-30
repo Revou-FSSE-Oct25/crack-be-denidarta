@@ -15,15 +15,15 @@ export class AssignmentsService {
     return this.assignmentRepository.findAll();
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.assignmentRepository.findOne(id);
   }
 
-  update(id: number, dto: UpdateAssignmentDto) {
+  update(id: string, dto: UpdateAssignmentDto) {
     return this.assignmentRepository.update(id, dto);
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.assignmentRepository.remove(id);
   }
 }
