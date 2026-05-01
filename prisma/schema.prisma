@@ -2,286 +2,388 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
+// ─── ENUMS ─────────────────────────────────────────────────────────
+
 enum UserRole {
-  STUDENT
-  INSTRUCTOR
-  ADMIN
-}
-
-enum CourseStatus {
-  DRAFT
-  ACTIVE
-  ARCHIVED
-  COMPLETED
-}
-
-enum EnrollmentStatus {
-  PENDING
-  ENROLLED
-  COMPLETED
-  DROPPED
-}
-
-enum MaterialType {
-  VIDEO
-  PDF
-  ARTICLE
-  SLIDES
-  OTHER
-}
-
-enum AttendanceStatus {
-  PRESENT
-  ABSENT
-  LATE
-  EXCUSED
-}
-
-enum AssignmentStatus {
-  DRAFT
-  PUBLISHED
-  CLOSED
-}
-
-enum SubmissionStatus {
-  DRAFT
-  SUBMITTED
-  GRADED
-  RETURNED
-}
-
-enum UserStatus {
-  INVITED
-  ACTIVE
-  INACTIVE
+  student
+  instructor
+  admin
 }
 
 enum Gender {
-  MALE
-  FEMALE
-  OTHER
-  PREFER_NOT_TO_SAY
+  male
+  female
+  other
+  prefer_not_to_say
+}
+
+enum AcademicStatus {
+  active
+  inactive
+  graduated
+  dropped_out
+  on_leave
 }
 
 enum EducationLevel {
-  NO_FORMAL_EDUCATION
-  PRIMARY
-  SECONDARY
-  VOCATIONAL
-  ASSOCIATE
-  BACHELOR
-  MASTER
-  DOCTORATE
-  PROFESSIONAL
+  high_school
+  diploma
+  bachelor
+  master
+  doctorate
+  other
 }
+
+enum CourseStatus {
+  draft
+  active
+  archived
+  completed
+}
+
+enum EnrollmentStatus {
+  pending
+  enrolled
+  completed
+  dropped
+}
+
+enum MaterialType {
+  video
+  pdf
+  article
+  slides
+  other
+}
+
+enum SessionStatus {
+  scheduled
+  ongoing
+  completed
+  cancelled
+}
+
+enum AttendanceStatus {
+  present
+  absent
+  late
+  excused
+}
+
+enum AssignmentStatus {
+  draft
+  published
+  closed
+}
+
+enum SubmissionStatus {
+  draft
+  submitted
+  graded
+  returned
+}
+
+// ─── AUTH & IDENTITY ───────────────────────────────────────────────
 
 model User {
   id        String    @id @default(uuid())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
-  username             String     @unique @db.VarChar(100)
-  email                String     @unique @db.VarChar(255)
-  role                 UserRole   @default(STUDENT)
-  password             String?    @db.VarChar(255)
-  status               UserStatus @default(INVITED)
-  inviteToken          String?    @unique
-  inviteTokenExpiresAt DateTime?
+  username     String   @unique @db.VarChar(100)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  role         UserRole @default(student)
+  isActive     Boolean  @default(true) @map("is_active")
 
-  taughtCourses Course[]               @relation("InstructorCourses")
-  enrollments   CourseEnrollment[]
-  attendances   ClassAttendance[]
-  submissions   AssignmentSubmission[]
-  profile       Profile?
+  profile             Profile?
+  studentProfile      StudentProfile?
+  instructorProfile   InstructorProfile?
+  createdPrograms     Program[]
+  taughtCourses       Course[]               @relation("InstructorCourses")
+  enrollments         CourseEnrollment[]
+  certificates        Certificate[]
+  uploadedMaterials   LearningMaterial[]
+  attendances         ClassAttendance[]      @relation("AttendeeAttendances")
+  verifiedAttendances ClassAttendance[]      @relation("VerifierAttendances")
+  submissions         AssignmentSubmission[]
 
   @@map("users")
 }
 
 model Profile {
-  id        String    @id @default(uuid())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  userId String @unique
+  userId String @unique @map("user_id")
   user   User   @relation(fields: [userId], references: [id])
 
-  // Personal info
-  fullName     String?   @db.VarChar(255)
-  dateOfBirth  DateTime? @db.Date
-  gender       Gender?
-
-  // Address
-  streetAddress String? @db.VarChar(500)
-  city          String? @db.VarChar(100)
-  province      String? @db.VarChar(100)
-  district      String? @db.VarChar(100)
-  subdistrict   String? @db.VarChar(100)
-  postalCode    String? @db.VarChar(20)
-  country       String? @db.VarChar(100)
-  timezone      String? @db.VarChar(100)
-
-  // Social & web presence
-  linkedinUrl     String? @db.VarChar(500)
-  githubUrl       String? @db.VarChar(500)
-  personalWebsite String? @db.VarChar(500)
-
-  // Professional info
-  shortBio           String?
-  currentOccupation  String? @db.VarChar(255)
-  company            String? @db.VarChar(255)
-  highestEducation   EducationLevel?
-  fieldOfStudy       String? @db.VarChar(255)
+  fullName        String? @map("full_name") @db.VarChar(255)
+  phoneNumber     String? @map("phone_number") @db.VarChar(20)
+  gender          Gender?
+  fullAddress     String? @map("full_address")
+  city            String? @db.VarChar(100)
+  province        String? @db.VarChar(100)
+  district        String? @db.VarChar(100)
+  subdistrict     String? @db.VarChar(100)
+  country         String? @default("Indonesia") @db.VarChar(100)
+  avatarUrl       String? @map("avatar_url")
+  linkedin        String?
+  instagram       String? @db.VarChar(255)
+  github          String? @db.VarChar(255)
+  personalWebsite String? @map("personal_website")
+  shortBio        String? @map("short_bio")
 
   @@map("profiles")
 }
 
+model StudentProfile {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  userId String @unique @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+
+  nim             String         @unique @db.VarChar(50)
+  enrollmentYear  Int            @map("enrollment_year") @db.SmallInt
+  major           String         @db.VarChar(255)
+  faculty         String?        @db.VarChar(255)
+  currentSemester Int?           @map("current_semester") @db.SmallInt
+  gpa             Decimal?       @db.Decimal(3, 2)
+  academicStatus  AcademicStatus @default(active) @map("academic_status")
+
+  @@map("student_profiles")
+}
+
+model InstructorProfile {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  userId String @unique @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+
+  employeeId        String          @unique @map("employee_id") @db.VarChar(50)
+  specialization    String?         @db.VarChar(255)
+  department        String?         @db.VarChar(255)
+  highestEducation  EducationLevel? @map("highest_education")
+  educationMajor    String?         @map("education_major") @db.VarChar(255)
+  company           String?         @db.VarChar(255)
+  companyWebsite    String?         @map("company_website")
+  currentOccupation String?         @map("current_occupation") @db.VarChar(255)
+  yearsOfExperience Int?            @map("years_of_experience") @db.SmallInt
+
+  @@map("instructor_profiles")
+}
+
+// ─── COURSE ────────────────────────────────────────────────────────
+
+model Program {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  name      String @db.VarChar(255)
+  createdBy String @map("created_by")
+  creator   User   @relation(fields: [createdBy], references: [id])
+
+  courses Course[]
+
+  @@map("programs")
+}
+
 model Course {
   id        String    @id @default(uuid())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
-  name        String       @db.VarChar(255)
-  description String?
-  status      CourseStatus @default(DRAFT)
+  programId    String?      @map("program_id")
+  instructorId String       @map("instructor_id")
+  name         String       @db.VarChar(255)
+  description  String?
+  startedAt    DateTime?    @map("started_at")
+  status       CourseStatus @default(draft)
 
-  instructorId String
-  instructor   User   @relation("InstructorCourses", fields: [instructorId], references: [id])
-
+  program           Program?               @relation(fields: [programId], references: [id])
+  instructor        User                   @relation("InstructorCourses", fields: [instructorId], references: [id])
   enrollments       CourseEnrollment[]
+  certificates      Certificate[]
   learningMaterials LearningMaterial[]
   classSessions     ClassSession[]
   assignments       Assignment[]
 
-  @@map("course")
+  @@index([instructorId])
+  @@index([programId])
+  @@map("courses")
 }
 
 model CourseEnrollment {
   id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  courseId String
-  userId   String
-  status   EnrollmentStatus @default(ENROLLED)
+  courseId String           @map("course_id")
+  userId   String           @map("user_id")
+  status   EnrollmentStatus @default(pending)
 
   course Course @relation(fields: [courseId], references: [id])
   user   User   @relation(fields: [userId], references: [id])
 
   @@unique([courseId, userId])
-  @@map("course_enrollment")
+  @@index([userId])
+  @@map("course_enrollments")
 }
+
+model Certificate {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  userId     String   @map("user_id")
+  courseId   String   @map("course_id")
+  issuedAt   DateTime @default(now()) @map("issued_at")
+  certNumber String   @unique @map("cert_number") @db.VarChar(100)
+  fileUrl    String?  @map("file_url")
+
+  user   User   @relation(fields: [userId], references: [id])
+  course Course @relation(fields: [courseId], references: [id])
+
+  @@unique([userId, courseId])
+  @@map("certificates")
+}
+
+// ─── LEARNING MATERIAL ─────────────────────────────────────────────
 
 model LearningMaterial {
   id        String    @id @default(uuid())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
-  courseId     String
+  courseId     String       @map("course_id")
+  uploadedBy   String       @map("uploaded_by")
   title        String       @db.VarChar(255)
   content      String?
-  fileUrl      String?      @db.VarChar(500)
-  materialType MaterialType
-  orderIndex   Float        @default(0)
+  fileUrl      String?      @map("file_url")
+  materialType MaterialType @map("material_type")
+  orderIndex   Int          @default(0) @map("order_index") @db.SmallInt
 
-  course Course @relation(fields: [courseId], references: [id])
+  course   Course @relation(fields: [courseId], references: [id])
+  uploader User   @relation(fields: [uploadedBy], references: [id])
 
-  @@map("learning_material")
+  @@unique([courseId, orderIndex])
+  @@index([courseId])
+  @@map("learning_materials")
 }
 
-model ClassSession {
-  id        String    @id @default(uuid())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+// ─── CLASS SESSION & ATTENDANCE ────────────────────────────────────
 
-  courseId   String
-  title      String   @db.VarChar(255)
-  startsAt   DateTime
-  endsAt     DateTime
-  location   String?  @db.VarChar(255)
-  meetingUrl String?  @db.VarChar(500)
+model ClassSession {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  courseId    String        @map("course_id")
+  title       String        @db.VarChar(255)
+  sessionDate DateTime      @map("session_date") @db.Date
+  startTime   DateTime      @map("start_time") @db.Time
+  endTime     DateTime      @map("end_time") @db.Time
+  location    String?       @db.VarChar(255)
+  meetingUrl  String?       @map("meeting_url")
+  status      SessionStatus @default(scheduled)
 
   course      Course            @relation(fields: [courseId], references: [id])
   attendances ClassAttendance[]
 
-  @@map("class_session")
+  @@index([courseId])
+  @@index([sessionDate])
+  @@map("class_sessions")
 }
 
 model ClassAttendance {
   id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  classSessionId String
-  userId         String
-  status         AttendanceStatus @default(PRESENT)
+  classSessionId String           @map("class_session_id")
+  userId         String           @map("user_id")
+  status         AttendanceStatus @default(present)
+  verifiedAt     DateTime?        @map("verified_at")
+  verifiedBy     String?          @map("verified_by")
 
   classSession ClassSession @relation(fields: [classSessionId], references: [id])
-  user         User         @relation(fields: [userId], references: [id])
+  user         User         @relation("AttendeeAttendances", fields: [userId], references: [id])
+  verifier     User?        @relation("VerifierAttendances", fields: [verifiedBy], references: [id])
 
   @@unique([classSessionId, userId])
-  @@map("class_attendance")
+  @@map("class_attendances")
 }
+
+// ─── ASSIGNMENT & SUBMISSION ───────────────────────────────────────
 
 model Assignment {
   id        String    @id @default(uuid())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
-  courseId    String
+  courseId    String           @map("course_id")
   title       String           @db.VarChar(255)
   description String?
-  dueDate     DateTime
-  maxPoints   Decimal          @default(100) @db.Decimal(5, 2)
-  status      AssignmentStatus @default(DRAFT)
+  dueDate     DateTime         @map("due_date")
+  maxPoints   Decimal          @default(100) @map("max_points") @db.Decimal(5, 2)
+  status      AssignmentStatus @default(draft)
 
   course      Course                 @relation(fields: [courseId], references: [id])
   submissions AssignmentSubmission[]
 
-  @@map("assignment")
+  @@index([courseId])
+  @@map("assignments")
 }
 
 model AssignmentSubmission {
-  id        String    @id @default(uuid())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  assignmentId   String
-  userId         String
-  submissionText String?
-  fileUrl        String?          @db.VarChar(500)
-  submittedAt    DateTime?
+  assignmentId   String           @map("assignment_id")
+  userId         String           @map("user_id")
+  submissionText String?          @map("submission_text")
+  fileUrl        String?          @map("file_url")
+  submittedAt    DateTime?        @map("submitted_at")
   grade          Decimal?         @db.Decimal(5, 2)
   passed         Boolean?
   feedback       String?
-  status         SubmissionStatus @default(DRAFT)
+  status         SubmissionStatus @default(draft)
 
   assignment Assignment @relation(fields: [assignmentId], references: [id])
   user       User       @relation(fields: [userId], references: [id])
 
   @@unique([assignmentId, userId])
-  @@map("assignment_submission")
+  @@index([userId])
+  @@map("assignment_submissions")
 }
+
+// ─── INTERNAL ──────────────────────────────────────────────────────
 
 model TokenPurge {
   id        String   @id @default(uuid())
   token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@map("token_blacklist")
 }
