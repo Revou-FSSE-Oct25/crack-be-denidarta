@@ -87,7 +87,9 @@ describe('SubmissionsService', () => {
       const submissions = [mockSubmission];
       mockFindAll.mockResolvedValue(submissions);
 
-      const result = await service.findAll({ assignmentId: 'uuid-assignment-1' });
+      const result = await service.findAll({
+        assignmentId: 'uuid-assignment-1',
+      });
 
       expect(mockFindAll).toHaveBeenCalledWith({
         assignmentId: 'uuid-assignment-1',

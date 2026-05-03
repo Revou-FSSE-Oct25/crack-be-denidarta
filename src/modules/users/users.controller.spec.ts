@@ -70,7 +70,9 @@ describe('UsersController', () => {
       const updated = createMockUser({ id: 'uuid-1', username: 'updatedname' });
       mockUsersService.update.mockResolvedValue(updated);
 
-      const result = await controller.update('uuid-1', { username: 'updatedname' });
+      const result = await controller.update('uuid-1', {
+        username: 'updatedname',
+      });
 
       expect(mockUsersService.update).toHaveBeenCalledWith('uuid-1', {
         username: 'updatedname',
