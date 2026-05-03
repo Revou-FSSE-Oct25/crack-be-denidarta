@@ -21,9 +21,9 @@ export class SubmissionsRepository {
     return this.prisma.assignmentSubmission.findMany({
       where: {
         deletedAt: null,
-        ...(filter.studentId && { studentId: filter.studentId }),
+        ...(filter.studentId && { userId: filter.studentId }),
         ...(filter.assignmentId && { assignmentId: filter.assignmentId }),
-        ...(filter.courseId && { courseId: filter.courseId }),
+        ...(filter.courseId && { assignment: { courseId: filter.courseId } }),
       },
     });
   }

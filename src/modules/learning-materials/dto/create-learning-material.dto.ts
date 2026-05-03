@@ -7,11 +7,15 @@ import {
   IsUUID,
   MaxLength,
 } from 'class-validator';
+
 import { MaterialType } from '@prisma/client';
 
 export class CreateLearningMaterialDto {
   @IsUUID('4')
   courseId: string;
+
+  @IsUUID('4')
+  uploadedBy: string;
 
   @IsString()
   @IsNotEmpty()

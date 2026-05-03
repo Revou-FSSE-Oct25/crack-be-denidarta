@@ -20,12 +20,12 @@ export class AuthService {
 
   async validateUser(email: string, password: string) {
     const user = await this.usersService.findByEmail(email);
-    if (!user || user.status !== 'ACTIVE') return null;
+    if (!user || user.status !== 'active') return null;
 
-    const passwordMatch = await bcrypt.compare(password, user.password!);
+    const passwordMatch = await bcrypt.compare(password, user.passwordHash!);
     if (!passwordMatch) return null;
 
-    const { password: _password, ...result } = user;
+    const { passwordHash: _passwordHash, ...result } = user;
     return result;
   }
 
@@ -67,7 +67,7 @@ export class AuthService {
     }
 
     const user = await this.usersService.findOne(payload.sub);
-    if (!user || user.status !== 'ACTIVE') {
+    if (!user || user.status !== 'active') {
       throw new UnauthorizedException('User not found or inactive');
     }
 
@@ -102,7 +102,7 @@ export class AuthService {
     const user = await this.usersService.findByInviteToken(dto.inviteToken);
 
     if (!user) throw new BadRequestException('Invalid invite token');
-    if (user.status !== 'INVITED')
+    if (user.status !== 'invited')
       throw new BadRequestException('User is not in invited state');
     if (!user.inviteTokenExpiresAt || user.inviteTokenExpiresAt < new Date()) {
       throw new BadRequestException('Invite token has expired');

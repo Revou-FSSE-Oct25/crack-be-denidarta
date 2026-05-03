@@ -28,10 +28,10 @@ describe('AuthController', () => {
   describe('login', () => {
     it('calls authService.login with request.user and returns tokens', async () => {
       const user = {
-        id: 1,
+        id: 'uuid-1',
         email: 'test@example.com',
-        role: 'STUDENT',
-        status: 'ACTIVE',
+        role: 'student',
+        status: 'active',
       };
       const tokens = { accessToken: 'access', refreshToken: 'refresh' };
       mockAuthService.login.mockResolvedValue(tokens);
@@ -71,7 +71,7 @@ describe('AuthController', () => {
 
   describe('generateInvite', () => {
     it('calls authService.generateInvite with userId and returns invite link', async () => {
-      const userId = 1;
+      const userId = 'uuid-1';
       const inviteLink = { inviteLink: 'https://example.com/invite/token123' };
       mockAuthService.generateInvite.mockResolvedValue(inviteLink);
 

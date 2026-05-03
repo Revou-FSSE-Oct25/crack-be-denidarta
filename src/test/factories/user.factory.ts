@@ -15,8 +15,8 @@ export function createMockUser(overrides: Partial<MockUser> = {}): MockUser {
     id: faker.string.uuid(),
     username: faker.internet.username(),
     email: faker.internet.email(),
-    role: UserRole.STUDENT,
-    status: UserStatus.ACTIVE,
+    role: UserRole.student,
+    status: UserStatus.active,
     createdAt: faker.date.past(),
     ...overrides,
   };

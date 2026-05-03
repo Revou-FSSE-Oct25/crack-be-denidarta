@@ -55,7 +55,7 @@ export class AuthController {
 
   @Post('invite/:userId')
   @HttpCode(HttpStatus.OK)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.admin)
   @UseGuards(RolesGuard)
   generateInvite(@Param('userId') userId: string) {
     return this.authService.generateInvite(userId);

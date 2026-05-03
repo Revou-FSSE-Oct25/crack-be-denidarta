@@ -8,7 +8,7 @@ export class ClassSessionRepository {
   constructor(private prisma: PrismaService) {}
 
   create(dto: CreateClassSessionDto) {
-    return this.prisma.classSession.create({ data: dto });
+    return this.prisma.classSession.create({ data: dto as never });
   }
 
   findAll() {

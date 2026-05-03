@@ -53,7 +53,7 @@ export class UserRepository {
   inviteUser(id: string, inviteToken: string, inviteTokenExpiresAt: Date) {
     return this.prisma.user.update({
       where: { id },
-      data: { inviteToken, inviteTokenExpiresAt, status: 'INVITED' },
+      data: { inviteToken, inviteTokenExpiresAt, status: 'invited' },
     });
   }
 
@@ -61,8 +61,8 @@ export class UserRepository {
     return this.prisma.user.update({
       where: { id },
       data: {
-        password: hashedPassword,
-        status: 'ACTIVE',
+        passwordHash: hashedPassword,
+        status: 'active',
         inviteToken: null,
         inviteTokenExpiresAt: null,
       },

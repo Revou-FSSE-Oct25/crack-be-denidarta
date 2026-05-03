@@ -15,9 +15,10 @@ function createMockContext(role: string | undefined, handlerRoles: UserRole[]) {
   > = {
     getHandler: jest.fn(),
     getClass: jest.fn(),
-    switchToHttp: () => ({
-      getRequest: () => ({ user: role ? { role } : undefined }),
-    }),
+    switchToHttp: () =>
+      ({
+        getRequest: () => ({ user: role ? { role } : undefined }),
+      }) as never,
   };
 
   return { guard, mockContext };
@@ -32,13 +33,13 @@ describe('RolesGuard', () => {
   });
 
   it('allows access when user has the required role', () => {
-    const { guard, mockContext } = createMockContext('ADMIN', [UserRole.ADMIN]);
+    const { guard, mockContext } = createMockContext('admin', [UserRole.admin]);
     expect(guard.canActivate(mockContext as ExecutionContext)).toBe(true);
   });
 
   it('throws ForbiddenException when user role does not match', () => {
-    const { guard, mockContext } = createMockContext('STUDENT', [
-      UserRole.ADMIN,
+    const { guard, mockContext } = createMockContext('student', [
+      UserRole.admin,
     ]);
     expect(() => guard.canActivate(mockContext as ExecutionContext)).toThrow(
       ForbiddenException,
@@ -47,7 +48,7 @@ describe('RolesGuard', () => {
 
   it('throws ForbiddenException when user is not authenticated', () => {
     const { guard, mockContext } = createMockContext(undefined, [
-      UserRole.ADMIN,
+      UserRole.admin,
     ]);
     expect(() => guard.canActivate(mockContext as ExecutionContext)).toThrow(
       ForbiddenException,

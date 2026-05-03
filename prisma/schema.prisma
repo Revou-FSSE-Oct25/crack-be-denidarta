@@ -17,6 +17,12 @@ enum UserRole {
   admin
 }
 
+enum UserStatus {
+  invited
+  active
+  inactive
+}
+
 enum Gender {
   male
   female
@@ -101,8 +107,11 @@ model User {
   username     String   @unique @db.VarChar(100)
   email        String   @unique @db.VarChar(255)
   passwordHash String?  @map("password_hash") @db.VarChar(255)
-  role         UserRole @default(student)
-  isActive     Boolean  @default(true) @map("is_active")
+  role                 UserRole   @default(student)
+  isActive             Boolean    @default(true) @map("is_active")
+  status               UserStatus @default(invited)
+  inviteToken          String?    @unique @map("invite_token")
+  inviteTokenExpiresAt DateTime?  @map("invite_token_expires_at")
 
   profile             Profile?
   studentProfile      StudentProfile?
@@ -120,9 +129,10 @@ model User {
 }
 
 model Profile {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   userId String @unique @map("user_id")
   user   User   @relation(fields: [userId], references: [id])
@@ -292,9 +302,10 @@ model LearningMaterial {
 // ─── CLASS SESSION & ATTENDANCE ────────────────────────────────────
 
 model ClassSession {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   courseId    String        @map("course_id")
   title       String        @db.VarChar(255)
@@ -355,9 +366,10 @@ model Assignment {
 }
 
 model AssignmentSubmission {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   assignmentId   String           @map("assignment_id")
   userId         String           @map("user_id")

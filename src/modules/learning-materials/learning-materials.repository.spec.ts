@@ -14,12 +14,12 @@ const mockPrisma = {
 } as unknown as PrismaService;
 
 const mockMaterial = {
-  id: 1,
-  courseId: 1,
+  id: 'uuid-1',
+  courseId: 'uuid-course-1',
   title: 'Introduction to NestJS',
   content: 'NestJS is a framework...',
   fileUrl: null,
-  materialType: MaterialType.ARTICLE,
+  materialType: MaterialType.article,
   orderIndex: 1,
   createdAt: new Date('2026-04-15T10:00:00.000Z'),
   updatedAt: new Date('2026-04-15T10:00:00.000Z'),
@@ -38,9 +38,10 @@ describe('LearningMaterialRepository', () => {
   describe('create', () => {
     it('creates and returns a new learning material', async () => {
       const dto = {
-        courseId: 1,
+        courseId: 'uuid-course-1',
         title: 'Introduction to NestJS',
-        materialType: MaterialType.ARTICLE,
+        materialType: MaterialType.article,
+        uploadedBy: 'uuid-user-1',
       };
       mockLearningMaterial.create.mockResolvedValue(mockMaterial);
 
@@ -69,10 +70,10 @@ describe('LearningMaterialRepository', () => {
     it('returns a learning material by id', async () => {
       mockLearningMaterial.findUnique.mockResolvedValue(mockMaterial);
 
-      const result = await repository.findOne(1);
+      const result = await repository.findOne('uuid-1');
 
       expect(mockLearningMaterial.findUnique).toHaveBeenCalledWith({
-        where: { id: 1 },
+        where: { id: 'uuid-1' },
       });
       expect(result).toEqual(mockMaterial);
     });
@@ -84,10 +85,10 @@ describe('LearningMaterialRepository', () => {
       const updated = { ...mockMaterial, ...dto };
       mockLearningMaterial.update.mockResolvedValue(updated);
 
-      const result = await repository.update(1, dto);
+      const result = await repository.update('uuid-1', dto);
 
       expect(mockLearningMaterial.update).toHaveBeenCalledWith({
-        where: { id: 1 },
+        where: { id: 'uuid-1' },
         data: dto,
       });
       expect(result).toEqual(updated);
@@ -100,13 +101,13 @@ describe('LearningMaterialRepository', () => {
       const softDeleted = { ...mockMaterial, deletedAt };
       mockLearningMaterial.update.mockResolvedValue(softDeleted);
 
-      const result = await repository.remove(1);
+      const result = await repository.remove('uuid-1');
 
       expect(mockLearningMaterial.update).toHaveBeenCalledWith({
-        where: { id: 1 },
+        where: { id: 'uuid-1' },
         data: { deletedAt: expect.any(Date) as Date },
       });
-      expect(result).toMatchObject({ id: 1, deletedAt });
+      expect(result).toMatchObject({ id: 'uuid-1', deletedAt });
     });
   });
 });

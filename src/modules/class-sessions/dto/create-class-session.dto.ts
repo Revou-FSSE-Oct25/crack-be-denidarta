@@ -18,10 +18,13 @@ export class CreateClassSessionDto {
   title: string;
 
   @IsDateString()
-  startsAt: string;
+  sessionDate: string;
 
   @IsDateString()
-  endsAt: string;
+  startTime: string;
+
+  @IsDateString()
+  endTime: string;
 
   @IsOptional()
   @IsString()

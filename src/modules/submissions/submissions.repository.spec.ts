@@ -14,16 +14,16 @@ const mockPrisma = {
 } as unknown as PrismaService;
 
 const mockSubmission = {
-  id: 1,
-  assignmentId: 1,
-  userId: 1,
+  id: 'uuid-1',
+  assignmentId: 'uuid-assignment-1',
+  userId: 'uuid-user-1',
   submissionText: 'My answer',
   fileUrl: null,
   submittedAt: new Date('2026-04-15T10:00:00.000Z'),
   grade: null,
   passed: null,
   feedback: null,
-  status: SubmissionStatus.SUBMITTED,
+  status: SubmissionStatus.submitted,
   createdAt: new Date('2026-04-15T10:00:00.000Z'),
   updatedAt: new Date('2026-04-15T10:00:00.000Z'),
   deletedAt: null,
@@ -40,7 +40,11 @@ describe('SubmissionsRepository', () => {
 
   describe('create', () => {
     it('creates and returns a new submission', async () => {
-      const dto = { assignmentId: 1, userId: 1, submissionText: 'My answer' };
+      const dto = {
+        assignmentId: 'uuid-assignment-1',
+        userId: 'uuid-user-1',
+        submissionText: 'My answer',
+      };
       mockAssignmentSubmission.create.mockResolvedValue(mockSubmission);
 
       const result = await repository.create(dto);
@@ -54,7 +58,7 @@ describe('SubmissionsRepository', () => {
 
   describe('findAll', () => {
     it('returns all submissions excluding soft deleted records', async () => {
-      const submissions = [mockSubmission, { ...mockSubmission, id: 2 }];
+      const submissions = [mockSubmission, { ...mockSubmission, id: 'uuid-2' }];
       mockAssignmentSubmission.findMany.mockResolvedValue(submissions);
 
       const result = await repository.findAll();
@@ -68,10 +72,10 @@ describe('SubmissionsRepository', () => {
     it('returns submissions filtered by studentId', async () => {
       mockAssignmentSubmission.findMany.mockResolvedValue([mockSubmission]);
 
-      const result = await repository.findAll({ studentId: 1 });
+      const result = await repository.findAll({ studentId: 'uuid-user-1' });
 
       expect(mockAssignmentSubmission.findMany).toHaveBeenCalledWith({
-        where: { deletedAt: null, studentId: 1 },
+        where: { deletedAt: null, userId: 'uuid-user-1' },
       });
       expect(result).toEqual([mockSubmission]);
     });
@@ -79,10 +83,12 @@ describe('SubmissionsRepository', () => {
     it('returns submissions filtered by assignmentId', async () => {
       mockAssignmentSubmission.findMany.mockResolvedValue([mockSubmission]);
 
-      const result = await repository.findAll({ assignmentId: 1 });
+      const result = await repository.findAll({
+        assignmentId: 'uuid-assignment-1',
+      });
 
       expect(mockAssignmentSubmission.findMany).toHaveBeenCalledWith({
-        where: { deletedAt: null, assignmentId: 1 },
+        where: { deletedAt: null, assignmentId: 'uuid-assignment-1' },
       });
       expect(result).toEqual([mockSubmission]);
     });
@@ -92,10 +98,10 @@ describe('SubmissionsRepository', () => {
     it('returns a submission by id', async () => {
       mockAssignmentSubmission.findUnique.mockResolvedValue(mockSubmission);
 
-      const result = await repository.findOne(1);
+      const result = await repository.findOne('uuid-1');
 
       expect(mockAssignmentSubmission.findUnique).toHaveBeenCalledWith({
-        where: { id: 1 },
+        where: { id: 'uuid-1' },
       });
       expect(result).toEqual(mockSubmission);
     });
@@ -103,14 +109,14 @@ describe('SubmissionsRepository', () => {
 
   describe('update', () => {
     it('updates and returns the updated submission', async () => {
-      const dto = { status: SubmissionStatus.GRADED, grade: 90 };
+      const dto = { status: SubmissionStatus.graded, grade: 90 };
       const updated = { ...mockSubmission, ...dto };
       mockAssignmentSubmission.update.mockResolvedValue(updated);
 
-      const result = await repository.update(1, dto);
+      const result = await repository.update('uuid-1', dto);
 
       expect(mockAssignmentSubmission.update).toHaveBeenCalledWith({
-        where: { id: 1 },
+        where: { id: 'uuid-1' },
         data: dto,
       });
       expect(result).toEqual(updated);
@@ -123,13 +129,13 @@ describe('SubmissionsRepository', () => {
       const softDeleted = { ...mockSubmission, deletedAt };
       mockAssignmentSubmission.update.mockResolvedValue(softDeleted);
 
-      const result = await repository.remove(1);
+      const result = await repository.remove('uuid-1');
 
       expect(mockAssignmentSubmission.update).toHaveBeenCalledWith({
-        where: { id: 1 },
+        where: { id: 'uuid-1' },
         data: { deletedAt: expect.any(Date) as Date },
       });
-      expect(result).toMatchObject({ id: 1, deletedAt });
+      expect(result).toMatchObject({ id: 'uuid-1', deletedAt });
     });
   });
 });

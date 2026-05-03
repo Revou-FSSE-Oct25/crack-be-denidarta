@@ -19,15 +19,15 @@ async function seedAdmin() {
     create: {
       username: 'superadmin',
       email: 'superadmin@rapor-biru.dev',
-      role: 'ADMIN',
-      password: await hashPassword('superadmin123'),
-      status: 'ACTIVE',
+      role: 'admin',
+      passwordHash: await hashPassword('superadmin123'),
+      status: 'active',
     },
   });
   console.log('Seeded: superadmin@rapor-biru.dev (ADMIN)');
 }
 
-async function seedUsers(role: 'STUDENT' | 'INSTRUCTOR', count: number) {
+async function seedUsers(role: 'student' | 'instructor', count: number) {
   const password = await hashPassword('password123');
 
   for (let i = 0; i < count; i++) {
@@ -46,8 +46,8 @@ async function seedUsers(role: 'STUDENT' | 'INSTRUCTOR', count: number) {
         username,
         email,
         role,
-        password,
-        status: 'ACTIVE',
+        passwordHash: password,
+        status: 'active',
       },
     });
     console.log(`Seeded: ${email} (${role})`);
@@ -56,8 +56,8 @@ async function seedUsers(role: 'STUDENT' | 'INSTRUCTOR', count: number) {
 
 async function main() {
   await seedAdmin();
-  await seedUsers('INSTRUCTOR', 25);
-  await seedUsers('STUDENT', 25);
+  await seedUsers('instructor', 25);
+  await seedUsers('student', 25);
 
   console.log(
     '\nSeed success! with Total: 1 admin, 25 instructor, 25 student.',
