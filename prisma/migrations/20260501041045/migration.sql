@@ -47,7 +47,6 @@
   - Added the required column `updated_at` to the `profiles` table without a default value. This is not possible if the table is not empty.
   - Added the required column `user_id` to the `profiles` table without a default value. This is not possible if the table is not empty.
   - Added the required column `expires_at` to the `token_blacklist` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `password_hash` to the `users` table without a default value. This is not possible if the table is not empty.
   - Added the required column `updated_at` to the `users` table without a default value. This is not possible if the table is not empty.
 
 */
@@ -116,24 +115,30 @@ DROP INDEX "profiles_userId_key";
 -- DropIndex
 DROP INDEX "users_inviteToken_key";
 
--- AlterTable
-ALTER TABLE "profiles" DROP COLUMN "company",
-RENAME COLUMN "createdAt" TO "created_at",
+-- AlterTable profiles: drop columns first
+ALTER TABLE "profiles"
+DROP COLUMN "company",
 DROP COLUMN "currentOccupation",
 DROP COLUMN "dateOfBirth",
 DROP COLUMN "deletedAt",
 DROP COLUMN "fieldOfStudy",
-RENAME COLUMN "fullName" TO "full_name",
-RENAME COLUMN "githubUrl" TO "github",
 DROP COLUMN "highestEducation",
-RENAME COLUMN "linkedinUrl" TO "linkedin",
-RENAME COLUMN "personalWebsite" TO "personal_website",
 DROP COLUMN "postalCode",
-RENAME COLUMN "shortBio" TO "short_bio",
-RENAME COLUMN "streetAddress" TO "full_address",
-DROP COLUMN "timezone",
-RENAME COLUMN "updatedAt" TO "updated_at",
-RENAME COLUMN "userId" TO "user_id",
+DROP COLUMN "timezone";
+
+-- AlterTable profiles: rename columns (must be separate statements in PostgreSQL)
+ALTER TABLE "profiles" RENAME COLUMN "createdAt" TO "created_at";
+ALTER TABLE "profiles" RENAME COLUMN "updatedAt" TO "updated_at";
+ALTER TABLE "profiles" RENAME COLUMN "userId" TO "user_id";
+ALTER TABLE "profiles" RENAME COLUMN "fullName" TO "full_name";
+ALTER TABLE "profiles" RENAME COLUMN "githubUrl" TO "github";
+ALTER TABLE "profiles" RENAME COLUMN "linkedinUrl" TO "linkedin";
+ALTER TABLE "profiles" RENAME COLUMN "personalWebsite" TO "personal_website";
+ALTER TABLE "profiles" RENAME COLUMN "shortBio" TO "short_bio";
+ALTER TABLE "profiles" RENAME COLUMN "streetAddress" TO "full_address";
+
+-- AlterTable profiles: add columns and change types/defaults
+ALTER TABLE "profiles"
 ADD COLUMN     "avatar_url" TEXT,
 ADD COLUMN     "instagram" VARCHAR(255),
 ADD COLUMN     "phone_number" VARCHAR(20),
@@ -176,7 +181,6 @@ END;
 ALTER TABLE "users" DROP COLUMN "inviteToken",
 DROP COLUMN "inviteTokenExpiresAt",
 DROP COLUMN "status",
-ALTER COLUMN "password_hash" SET NOT NULL,
 ALTER COLUMN "role" SET DEFAULT 'student';
 
 -- DropTable
