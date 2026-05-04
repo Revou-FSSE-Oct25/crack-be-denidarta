@@ -35,8 +35,8 @@ export class UsersService {
     return this.userRepository.findByInviteToken(inviteToken);
   }
 
-  findAllPaginated(skip: number, take: number) {
-    return this.userRepository.findAllPaginated(skip, take);
+  findAllPaginated(skip: number, take: number, role?: string, search?: string) {
+    return this.userRepository.findAllPaginated(skip, take, role, search);
   }
 
   // ---- Update ----

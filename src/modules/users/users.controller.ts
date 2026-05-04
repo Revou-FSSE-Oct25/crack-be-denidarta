@@ -34,12 +34,14 @@ export class UsersController {
     @Query('role') role?: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
+    @Query('search') search?: string,
   ) {
-    if (role) return this.usersService.findByRole(role);
     const params = paginationParams({ page, limit });
     const [data, total] = await this.usersService.findAllPaginated(
       params.skip,
       params.take,
+      role,
+      search,
     );
     return paginatedResponse(data, total, params);
   }
