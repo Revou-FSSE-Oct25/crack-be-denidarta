@@ -8,6 +8,7 @@ import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './modules/users/users.module';
 import { CoursesModule } from './modules/courses/courses.module';
+import { ProgramsModule } from './modules/programs/programs.module';
 import { EnrollmentsModule } from './modules/enrollments/enrollments.module';
 import { LearningMaterialsModule } from './modules/learning-materials/learning-materials.module';
 import { ClassSessionsModule } from './modules/class-sessions/class-sessions.module';
@@ -34,6 +35,7 @@ import { envValidationSchema } from './config/env.config';
     JwtModule.register({}),
     DatabaseModule,
     UsersModule,
+    ProgramsModule,
     CoursesModule,
     EnrollmentsModule,
     LearningMaterialsModule,

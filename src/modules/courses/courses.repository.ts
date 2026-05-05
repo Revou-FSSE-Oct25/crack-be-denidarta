@@ -12,7 +12,10 @@ export class CourseRepository {
   }
 
   findAll() {
-    return this.prisma.course.findMany({ where: { deletedAt: null } });
+    return this.prisma.course.findMany({
+      where: { deletedAt: null },
+      include: { instructor: { include: { profile: true } } },
+    });
   }
 
   findOne(id: string) {
