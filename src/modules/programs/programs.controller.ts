@@ -26,10 +26,7 @@ export class ProgramsController {
   }
 
   @Get()
-  async findAll(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-  ) {
+  async findAll(@Query('page') page?: number, @Query('limit') limit?: number) {
     const params = paginationParams({ page, limit });
     const [data, total] = await this.programsService.findAllPaginated(
       params.skip,

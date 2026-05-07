@@ -12,6 +12,7 @@ export class ProgramRepository {
       data: dto,
       include: {
         creator: { include: { profile: true } },
+        headOfProgram: { include: { profile: true } },
         courses: true,
       },
     });
@@ -25,6 +26,7 @@ export class ProgramRepository {
         take,
         include: {
           creator: { include: { profile: true } },
+          headOfProgram: { include: { profile: true } },
           courses: true,
         },
         orderBy: { createdAt: 'desc' },
@@ -38,6 +40,7 @@ export class ProgramRepository {
       where: { id },
       include: {
         creator: { include: { profile: true } },
+        headOfProgram: { include: { profile: true } },
         courses: true,
       },
     });
@@ -49,6 +52,7 @@ export class ProgramRepository {
       data: dto,
       include: {
         creator: { include: { profile: true } },
+        headOfProgram: { include: { profile: true } },
         courses: true,
       },
     });

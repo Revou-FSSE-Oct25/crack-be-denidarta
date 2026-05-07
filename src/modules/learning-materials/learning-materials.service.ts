@@ -13,8 +13,8 @@ export class LearningMaterialsService {
     return this.learningMaterialRepository.create(dto);
   }
 
-  findAll() {
-    return this.learningMaterialRepository.findAll();
+  findAll(page: number = 1, limit: number = 10) {
+    return this.learningMaterialRepository.findAll(page, limit);
   }
 
   findOne(id: string) {
@@ -23,6 +23,14 @@ export class LearningMaterialsService {
 
   update(id: string, dto: UpdateLearningMaterialDto) {
     return this.learningMaterialRepository.update(id, dto);
+  }
+
+  findByCourse(courseId: string) {
+    return this.learningMaterialRepository.findByCourse(courseId);
+  }
+
+  findByProgram(programId: string) {
+    return this.learningMaterialRepository.findByProgram(programId);
   }
 
   remove(id: string) {

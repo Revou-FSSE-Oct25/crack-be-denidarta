@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { LearningMaterialsService } from './learning-materials.service';
 import { CreateLearningMaterialDto } from './dto/create-learning-material.dto';
@@ -23,8 +24,24 @@ export class LearningMaterialsController {
   }
 
   @Get()
-  findAll() {
-    return this.learningMaterialsService.findAll();
+  findAll(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+  ) {
+    return this.learningMaterialsService.findAll(
+      parseInt(page, 10),
+      parseInt(limit, 10),
+    );
+  }
+
+  @Get('course/:courseId')
+  findByCourse(@Param('courseId') courseId: string) {
+    return this.learningMaterialsService.findByCourse(courseId);
+  }
+
+  @Get('program/:programId')
+  findByProgram(@Param('programId') programId: string) {
+    return this.learningMaterialsService.findByProgram(programId);
   }
 
   @Get(':id')

@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsString, IsUUID, MaxLength } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsUUID,
+  MaxLength,
+  IsOptional,
+} from 'class-validator';
 
 export class CreateProgramDto {
   @IsString()
@@ -8,4 +14,8 @@ export class CreateProgramDto {
 
   @IsUUID('4')
   createdBy: string;
+
+  @IsUUID('4')
+  @IsOptional()
+  headOfProgramId?: string;
 }

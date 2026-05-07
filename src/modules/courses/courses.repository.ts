@@ -14,7 +14,10 @@ export class CourseRepository {
   findAll() {
     return this.prisma.course.findMany({
       where: { deletedAt: null },
-      include: { instructor: { include: { profile: true } } },
+      include: {
+        instructor: { include: { profile: true } },
+        enrollments: true,
+      },
     });
   }
 

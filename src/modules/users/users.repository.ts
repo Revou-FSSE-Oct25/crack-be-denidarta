@@ -37,10 +37,20 @@ export class UserRepository {
     return this.prisma.user.findUnique({ where: { inviteToken } });
   }
 
-  findAllPaginated(skip: number, take: number, role?: string, search?: string) {
+  findAllPaginated(
+    skip: number,
+    take: number,
+    role?: string,
+    search?: string,
+    roles?: string[],
+  ) {
     const where = {
       deletedAt: null,
-      ...(role ? { role: role as never } : {}),
+      ...(roles && roles.length > 0
+        ? { role: { in: roles as never[] } }
+        : role
+          ? { role: role as never }
+          : {}),
       ...(search
         ? {
             OR: [

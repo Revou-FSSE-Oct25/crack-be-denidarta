@@ -35,8 +35,12 @@ export class SubmissionsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.submissionsService.findOne(id);
+  findOne(
+    @Param('id') id: string,
+    @CurrentUser()
+    currentUser: JwtPayload,
+  ) {
+    return this.submissionsService.findOne(id, currentUser);
   }
 
   @Patch(':id')

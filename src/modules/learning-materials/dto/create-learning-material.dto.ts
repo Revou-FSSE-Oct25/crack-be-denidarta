@@ -6,14 +6,12 @@ import {
   IsString,
   IsUUID,
   MaxLength,
+  IsArray,
 } from 'class-validator';
 
 import { MaterialType } from '@prisma/client';
 
 export class CreateLearningMaterialDto {
-  @IsUUID('4')
-  courseId: string;
-
   @IsUUID('4')
   uploadedBy: string;
 
@@ -34,7 +32,13 @@ export class CreateLearningMaterialDto {
   @IsEnum(MaterialType)
   materialType: MaterialType;
 
+  @IsArray()
+  @IsUUID('4', { each: true })
   @IsOptional()
-  @IsNumber()
-  orderIndex?: number;
+  courseIds?: string[];
+
+  @IsArray()
+  @IsUUID('4', { each: true })
+  @IsOptional()
+  programIds?: string[];
 }

@@ -32,16 +32,24 @@ export class UsersController {
   @Get()
   async findAll(
     @Query('role') role?: string,
+    @Query('roles') rolesParam?: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('search') search?: string,
   ) {
     const params = paginationParams({ page, limit });
+    const roles = rolesParam
+      ? rolesParam
+          .split(',')
+          .map((r) => r.trim())
+          .filter(Boolean)
+      : undefined;
     const [data, total] = await this.usersService.findAllPaginated(
       params.skip,
       params.take,
       role,
       search,
+      roles,
     );
     return paginatedResponse(data, total, params);
   }

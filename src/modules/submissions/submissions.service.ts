@@ -21,8 +21,25 @@ export class SubmissionsService {
     return this.submissionRepository.findAll(filter);
   }
 
-  findOne(id: string) {
-    return this.submissionRepository.findOne(id);
+  async findOne(id: string, currentUser: JwtPayload) {
+    const submission = await this.submissionRepository.findOne(id);
+
+    if (!submission || submission.deletedAt) {
+      throw new NotFoundException('Submission not found');
+    }
+
+    const isAuthorized =
+      currentUser.role === UserRole.admin ||
+      currentUser.role === UserRole.instructor;
+    const isOwner = submission.studentId === currentUser.sub;
+
+    if (!isAuthorized && !isOwner) {
+      throw new ForbiddenException(
+        'You are not allowed to view this submission',
+      );
+    }
+
+    return submission;
   }
 
   update(id: string, dto: UpdateSubmissionDto) {
