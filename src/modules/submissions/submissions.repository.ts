@@ -45,4 +45,11 @@ export class SubmissionsRepository {
       data: { deletedAt: new Date() },
     });
   }
+
+  softDelete(id: string) {
+    return this.prisma.assignmentSubmission.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+  }
 }

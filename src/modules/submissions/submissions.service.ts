@@ -1,7 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { UpdateSubmissionDto } from './dto/update-submission.dto';
 import { SubmissionsRepository } from './submissions.repository';
+import { JwtPayload } from '../../common/decorators/current-user.decorator';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class SubmissionsService {
@@ -47,6 +53,6 @@ export class SubmissionsService {
   }
 
   remove(id: string) {
-    return this.submissionRepository.remove(id);
+    return this.submissionRepository.softDelete(id);
   }
 }

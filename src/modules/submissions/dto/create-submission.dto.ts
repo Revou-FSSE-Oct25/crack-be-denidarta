@@ -15,7 +15,7 @@ export class CreateSubmissionDto {
   assignmentId: string;
 
   @IsUUID('4')
-  userId: string;
+  studentId: string;
 
   @IsOptional()
   @IsString()
