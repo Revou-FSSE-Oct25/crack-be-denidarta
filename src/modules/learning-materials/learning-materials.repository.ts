@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateLearningMaterialDto } from './dto/create-learning-material.dto';
 import { UpdateLearningMaterialDto } from './dto/update-learning-material.dto';
@@ -91,7 +92,7 @@ export class LearningMaterialRepository {
     const { courseIds, programIds, ...materialData } = dto;
 
     // Update material
-    const learningMaterial = await this.prisma.learningMaterial.update({
+    await this.prisma.learningMaterial.update({
       where: { id },
       data: materialData,
     });
@@ -186,10 +187,18 @@ export class LearningMaterialRepository {
       : [];
 
     // Combine and deduplicate by material ID
-    const materialMap = new Map<
-      string,
-      any & { accessType: 'direct' | 'program' }
-    >();
+    type LearningMaterialWithRelations = Prisma.LearningMaterialGetPayload<{
+      include: {
+        uploader: { include: { profile: true } };
+        courses: { include: { course: true } };
+        programs: { include: { program: true } };
+      };
+    }>;
+    type MaterialWithAccessType = LearningMaterialWithRelations & {
+      accessType: 'direct' | 'program';
+    };
+
+    const materialMap = new Map<string, MaterialWithAccessType>();
 
     directCourseMaterials.forEach((cm) => {
       materialMap.set(cm.learningMaterial.id, {

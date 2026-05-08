@@ -1,7 +1,6 @@
 import {
   IsEnum,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
   IsUUID,
