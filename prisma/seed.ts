@@ -319,25 +319,25 @@ async function seedEnrollments() {
     where: { role: 'student', deletedAt: null },
   });
 
-  const courses = await prisma.course.findMany();
+  const programs = await prisma.program.findMany();
 
   if (students.length === 0)
     throw new Error('No students found. Run user seed first.');
-  if (courses.length === 0)
-    throw new Error('No courses found. Run course seed first.');
+  if (programs.length === 0)
+    throw new Error('No programs found. Run program seed first.');
 
   for (const student of students) {
-    // Randomly select 1-5 courses for this student
-    const enrollmentCount = Math.floor(Math.random() * 5) + 1;
-    const shuffledCourses = courses.sort(() => Math.random() - 0.5);
-    const selectedCourses = shuffledCourses.slice(0, enrollmentCount);
+    // Randomly select 1-3 programs for this student
+    const enrollmentCount = Math.floor(Math.random() * 3) + 1;
+    const shuffledPrograms = programs.sort(() => Math.random() - 0.5);
+    const selectedPrograms = shuffledPrograms.slice(0, enrollmentCount);
 
-    for (const course of selectedCourses) {
+    for (const program of selectedPrograms) {
       // Check if enrollment already exists
-      const existing = await prisma.courseEnrollment.findUnique({
+      const existing = await prisma.programEnrollment.findUnique({
         where: {
-          courseId_userId: {
-            courseId: course.id,
+          programId_userId: {
+            programId: program.id,
             userId: student.id,
           },
         },
@@ -353,16 +353,16 @@ async function seedEnrollments() {
         { value: 'dropped', weight: 5 },
       ]) as 'enrolled' | 'completed' | 'pending' | 'dropped';
 
-      await prisma.courseEnrollment.create({
+      await prisma.programEnrollment.create({
         data: {
-          courseId: course.id,
+          programId: program.id,
           userId: student.id,
           status,
         },
       });
 
       console.log(
-        `Seeded enrollment: ${student.email} → ${course.name} (${status})`,
+        `Seeded enrollment: ${student.email} → ${program.name} (${status})`,
       );
     }
   }
@@ -534,7 +534,9 @@ async function seedLearningMaterials() {
 async function seedLearningMaterialCourseRelations() {
   const existingCount = await prisma.learningMaterialCourse.count();
   if (existingCount > 0) {
-    console.log('Learning material course relations already seeded, skipping...');
+    console.log(
+      'Learning material course relations already seeded, skipping...',
+    );
     return;
   }
 

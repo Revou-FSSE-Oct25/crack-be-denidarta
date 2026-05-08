@@ -8,22 +8,22 @@ export class EnrollmentRepository {
   constructor(private prisma: PrismaService) {}
 
   create(dto: CreateEnrollmentDto) {
-    return this.prisma.courseEnrollment.create({ data: dto });
+    return this.prisma.programEnrollment.create({ data: dto });
   }
 
   findAll() {
-    return this.prisma.courseEnrollment.findMany();
+    return this.prisma.programEnrollment.findMany();
   }
 
   findOne(id: string) {
-    return this.prisma.courseEnrollment.findUnique({ where: { id } });
+    return this.prisma.programEnrollment.findUnique({ where: { id } });
   }
 
   update(id: string, dto: UpdateEnrollmentDto) {
-    return this.prisma.courseEnrollment.update({ where: { id }, data: dto });
+    return this.prisma.programEnrollment.update({ where: { id }, data: dto });
   }
 
   remove(id: string) {
-    return this.prisma.courseEnrollment.delete({ where: { id } });
+    return this.prisma.programEnrollment.delete({ where: { id } });
   }
 }

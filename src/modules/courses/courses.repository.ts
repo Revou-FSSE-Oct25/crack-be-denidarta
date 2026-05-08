@@ -16,7 +16,6 @@ export class CourseRepository {
       where: { deletedAt: null },
       include: {
         instructor: { include: { profile: true } },
-        enrollments: true,
       },
     });
   }

@@ -10,14 +10,19 @@ import {
 import { AssignmentsService } from './assignments.service';
 import { CreateAssignmentDto } from './dto/create-assignment.dto';
 import { UpdateAssignmentDto } from './dto/update-assignment.dto';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 
 @Controller('assignments')
 export class AssignmentsController {
   constructor(private readonly assignmentsService: AssignmentsService) {}
 
   @Post()
-  create(@Body() createAssignmentDto: CreateAssignmentDto) {
-    return this.assignmentsService.create(createAssignmentDto);
+  create(
+    @Body() createAssignmentDto: CreateAssignmentDto,
+    @CurrentUser() currentUser: JwtPayload,
+  ) {
+    return this.assignmentsService.create(createAssignmentDto, currentUser);
   }
 
   @Get()

@@ -1,13 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { CreateAssignmentDto } from './dto/create-assignment.dto';
 import { UpdateAssignmentDto } from './dto/update-assignment.dto';
 import { AssignmentRepository } from './assignments.repository';
+import { JwtPayload } from '../../common/decorators/current-user.decorator';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class AssignmentsService {
   constructor(private readonly assignmentRepository: AssignmentRepository) {}
 
-  create(dto: CreateAssignmentDto) {
+  async create(dto: CreateAssignmentDto, currentUser: JwtPayload) {
+    if (
+      currentUser.role !== UserRole.admin &&
+      currentUser.role !== UserRole.instructor
+    ) {
+      throw new ForbiddenException('You are not allowed to create assignment');
+    }
+
     return this.assignmentRepository.create(dto);
   }
 
