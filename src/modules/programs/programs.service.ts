@@ -7,20 +7,45 @@ import { UpdateProgramDto } from './dto/update-program.dto';
 export class ProgramsService {
   constructor(private readonly programRepository: ProgramRepository) {}
 
-  create(dto: CreateProgramDto) {
-    return this.programRepository.create(dto);
+  private mapProgram<
+    T extends {
+      programs: {
+        userId: string;
+        user: { profile: { fullName: string | null } | null } | null;
+      }[];
+    },
+  >(program: T) {
+    const { programs, ...rest } = program;
+    return {
+      ...rest,
+      enrolledStudents: programs.map((e) => ({
+        userId: e.userId,
+        fullName: e.user?.profile?.fullName ?? null,
+      })),
+    };
   }
 
-  findAllPaginated(skip: number, take: number) {
-    return this.programRepository.findAllPaginated(skip, take);
+  async create(dto: CreateProgramDto) {
+    const result = await this.programRepository.create(dto);
+    return this.mapProgram(result);
   }
 
-  findOne(id: string) {
-    return this.programRepository.findOne(id);
+  async findAllPaginated(skip: number, take: number) {
+    const [data, total] = await this.programRepository.findAllPaginated(
+      skip,
+      take,
+    );
+    return [data.map(this.mapProgram.bind(this)), total] as const;
   }
 
-  update(id: string, dto: UpdateProgramDto) {
-    return this.programRepository.update(id, dto);
+  async findOne(id: string) {
+    const result = await this.programRepository.findOne(id);
+    return result ? this.mapProgram(result) : null;
+  }
+
+  async update(id: string, dto: UpdateProgramDto) {
+    const result = await this.programRepository.update(id, dto);
+    return this.mapProgram(result);
   }
 
   remove(id: string) {

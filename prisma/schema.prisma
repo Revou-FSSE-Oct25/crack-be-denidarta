@@ -232,6 +232,7 @@ model Course {
   name         String       @db.VarChar(255)
   description  String?
   startedAt    DateTime?    @map("started_at")
+  endedAt      DateTime?    @map("ended_at")
   status       CourseStatus @default(draft)
 
   program           Program?                 @relation(fields: [programId], references: [id])

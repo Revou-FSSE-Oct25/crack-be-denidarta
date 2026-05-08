@@ -61,7 +61,16 @@ export class UserRepository {
         : {}),
     };
     return Promise.all([
-      this.prisma.user.findMany({ where, skip, take }),
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take,
+        include: {
+          profile: {
+            select: { fullName: true },
+          },
+        },
+      }),
       this.prisma.user.count({ where }),
     ]);
   }
