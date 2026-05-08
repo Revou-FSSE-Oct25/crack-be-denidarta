@@ -11,7 +11,7 @@ export interface PaginationParams {
 }
 
 export interface PaginatedResponse<T> {
-  data: T[];
+  items: T[];
   meta: {
     total: number;
     page: number;
@@ -44,7 +44,7 @@ export function paginatedResponse<T>(
   params: PaginationParams,
 ): PaginatedResponse<T> {
   return {
-    data,
+    items: data,
     meta: {
       total,
       page: params.page,
