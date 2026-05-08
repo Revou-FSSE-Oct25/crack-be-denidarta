@@ -74,12 +74,20 @@ async function seedProfiles() {
           'other',
           'prefer_not_to_say',
         ]),
+        fullAddress: faker.location.streetAddress({ useFullAddress: true }),
         city: faker.location.city(),
+        district: faker.location.county().slice(0, 100),
+        subdistrict: faker.location.city().slice(0, 100),
         province: faker.location.state(),
         country: 'Indonesia',
+        avatarUrl: faker.image.avatar(),
         shortBio: faker.lorem.sentence(),
+        linkedin: `https://linkedin.com/in/${faker.internet.username().toLowerCase()}`,
         instagram: faker.internet.username().toLowerCase(),
         github: faker.internet.username().toLowerCase(),
+        personalWebsite: faker.helpers.maybe(() => faker.internet.url(), {
+          probability: 0.4,
+        }),
       },
     });
     console.log(`Seeded profile for: ${user.email}`);
@@ -347,11 +355,11 @@ async function seedEnrollments() {
 
       // Create enrollment with weighted-random status
       const status = faker.helpers.weightedArrayElement([
-        { value: 'enrolled', weight: 50 },
-        { value: 'completed', weight: 30 },
-        { value: 'pending', weight: 15 },
-        { value: 'dropped', weight: 5 },
-      ]) as 'enrolled' | 'completed' | 'pending' | 'dropped';
+        { value: 'enrolled' as const, weight: 50 },
+        { value: 'completed' as const, weight: 30 },
+        { value: 'pending' as const, weight: 15 },
+        { value: 'dropped' as const, weight: 5 },
+      ]);
 
       await prisma.programEnrollment.create({
         data: {
@@ -637,6 +645,339 @@ async function seedLearningMaterialProgramRelations() {
   console.log('Seeded learning material program relations complete!');
 }
 
+async function seedClassSessions() {
+  const existingCount = await prisma.classSession.count();
+  if (existingCount > 0) {
+    console.log('Class sessions already seeded, skipping...');
+    return;
+  }
+
+  const courses = await prisma.course.findMany({
+    where: { deletedAt: null },
+  });
+
+  if (courses.length === 0)
+    throw new Error('No courses found. Run course seed first.');
+
+  const sessionTitles = [
+    'Pengenalan & Overview',
+    'Dasar-Dasar Konsep',
+    'Praktik Pertama',
+    'Studi Kasus & Diskusi',
+    'Project Session',
+    'Review & Evaluasi',
+    'Advanced Topics',
+    'Q&A dan Penutup',
+  ];
+
+  for (const course of courses) {
+    const sessionCount = faker.number.int({ min: 4, max: 8 });
+    const baseDate = faker.date.between({
+      from: '2025-01-01',
+      to: '2025-12-01',
+    });
+
+    for (let i = 0; i < sessionCount; i++) {
+      const sessionDate = new Date(baseDate);
+      sessionDate.setDate(sessionDate.getDate() + i * 7);
+
+      const startHour = faker.helpers.arrayElement([8, 9, 10, 13, 14, 15]);
+      const startTime = new Date(sessionDate);
+      startTime.setHours(startHour, 0, 0, 0);
+
+      const endTime = new Date(startTime);
+      endTime.setHours(startHour + 2, 0, 0, 0);
+
+      const status = faker.helpers.weightedArrayElement([
+        { value: 'completed' as const, weight: 5 },
+        { value: 'scheduled' as const, weight: 3 },
+        { value: 'ongoing' as const, weight: 1 },
+        { value: 'cancelled' as const, weight: 1 },
+      ]);
+
+      await prisma.classSession.create({
+        data: {
+          courseId: course.id,
+          title: sessionTitles[i % sessionTitles.length],
+          sessionDate,
+          startTime,
+          endTime,
+          location: faker.helpers.maybe(
+            () =>
+              faker.helpers.arrayElement([
+                'Ruang A101',
+                'Ruang B202',
+                'Lab Komputer 1',
+                'Aula Utama',
+              ]),
+            { probability: 0.6 },
+          ),
+          meetingUrl: faker.helpers.maybe(() => faker.internet.url(), {
+            probability: 0.5,
+          }),
+          status,
+        },
+      });
+    }
+    console.log(
+      `Seeded ${sessionCount} class sessions for course: ${course.name}`,
+    );
+  }
+}
+
+async function seedClassAttendances() {
+  const existingCount = await prisma.classAttendance.count();
+  if (existingCount > 0) {
+    console.log('Class attendances already seeded, skipping...');
+    return;
+  }
+
+  const completedSessions = await prisma.classSession.findMany({
+    where: { status: 'completed', deletedAt: null },
+    include: { course: true },
+  });
+
+  if (completedSessions.length === 0) {
+    console.log('No completed class sessions found, skipping attendance seed.');
+    return;
+  }
+
+  const students = await prisma.user.findMany({
+    where: { role: 'student', deletedAt: null },
+  });
+
+  if (students.length === 0) {
+    console.log('No students found, skipping attendance seed.');
+    return;
+  }
+
+  for (const session of completedSessions) {
+    const attendeeCount = faker.number.int({
+      min: Math.min(3, students.length),
+      max: Math.min(15, students.length),
+    });
+    const shuffledStudents = [...students].sort(() => Math.random() - 0.5);
+    const attendees = shuffledStudents.slice(0, attendeeCount);
+
+    for (const student of attendees) {
+      const status = faker.helpers.weightedArrayElement([
+        { value: 'present' as const, weight: 7 },
+        { value: 'late' as const, weight: 1 },
+        { value: 'absent' as const, weight: 1 },
+        { value: 'excused' as const, weight: 1 },
+      ]);
+
+      await prisma.classAttendance.upsert({
+        where: {
+          classSessionId_userId: {
+            classSessionId: session.id,
+            userId: student.id,
+          },
+        },
+        update: {},
+        create: {
+          classSessionId: session.id,
+          userId: student.id,
+          status,
+          verifiedAt: status !== 'absent' ? session.sessionDate : null,
+        },
+      });
+    }
+    console.log(
+      `Seeded ${attendees.length} attendances for session: ${session.title} (${session.course.name})`,
+    );
+  }
+}
+
+async function seedAssignments() {
+  const existingCount = await prisma.assignment.count();
+  if (existingCount > 0) {
+    console.log('Assignments already seeded, skipping...');
+    return;
+  }
+
+  const courses = await prisma.course.findMany({
+    where: { deletedAt: null },
+  });
+
+  if (courses.length === 0)
+    throw new Error('No courses found. Run course seed first.');
+
+  const assignmentTemplates = [
+    {
+      title: 'Tugas Individu: Studi Kasus',
+      description:
+        'Analisis studi kasus yang diberikan dan buat laporan singkat.',
+    },
+    {
+      title: 'Proyek Mini: Implementasi Materi',
+      description:
+        'Implementasikan konsep yang dipelajari dalam proyek sederhana.',
+    },
+    {
+      title: 'Kuis Pemahaman',
+      description: 'Jawab pertanyaan berdasarkan materi yang sudah dibahas.',
+    },
+    {
+      title: 'Latihan Soal & Refleksi',
+      description:
+        'Kerjakan latihan soal dan tuliskan refleksi pembelajaran Anda.',
+    },
+  ];
+
+  for (const course of courses) {
+    const count = faker.number.int({ min: 2, max: 4 });
+    for (let i = 0; i < count; i++) {
+      const template = assignmentTemplates[i % assignmentTemplates.length];
+      const status = faker.helpers.weightedArrayElement([
+        { value: 'published' as const, weight: 5 },
+        { value: 'draft' as const, weight: 2 },
+        { value: 'closed' as const, weight: 3 },
+      ]);
+
+      await prisma.assignment.create({
+        data: {
+          courseId: course.id,
+          title: `${template.title} ${i + 1}`,
+          description: template.description,
+          dueDate: faker.date.between({ from: '2025-03-01', to: '2025-12-31' }),
+          maxPoints: faker.helpers.arrayElement([50, 75, 100]),
+          status,
+        },
+      });
+    }
+    console.log(`Seeded ${count} assignments for course: ${course.name}`);
+  }
+}
+
+async function seedAssignmentSubmissions() {
+  const existingCount = await prisma.assignmentSubmission.count();
+  if (existingCount > 0) {
+    console.log('Assignment submissions already seeded, skipping...');
+    return;
+  }
+
+  const assignments = await prisma.assignment.findMany({
+    where: { status: { in: ['published', 'closed'] }, deletedAt: null },
+  });
+
+  const students = await prisma.user.findMany({
+    where: { role: 'student', deletedAt: null },
+  });
+
+  if (assignments.length === 0) {
+    console.log(
+      'No published/closed assignments found, skipping submission seed.',
+    );
+    return;
+  }
+  if (students.length === 0) {
+    console.log('No students found, skipping submission seed.');
+    return;
+  }
+
+  for (const assignment of assignments) {
+    const submitterCount = faker.number.int({
+      min: Math.min(3, students.length),
+      max: Math.min(12, students.length),
+    });
+    const shuffledStudents = [...students].sort(() => Math.random() - 0.5);
+    const submitters = shuffledStudents.slice(0, submitterCount);
+
+    for (const student of submitters) {
+      const status = faker.helpers.weightedArrayElement([
+        { value: 'submitted' as const, weight: 3 },
+        { value: 'graded' as const, weight: 4 },
+        { value: 'returned' as const, weight: 2 },
+        { value: 'draft' as const, weight: 1 },
+      ]);
+
+      const isGraded = status === 'graded' || status === 'returned';
+      const grade = isGraded
+        ? parseFloat(
+            faker.number
+              .float({ min: 50, max: 100, fractionDigits: 2 })
+              .toFixed(2),
+          )
+        : null;
+
+      await prisma.assignmentSubmission.upsert({
+        where: {
+          assignmentId_studentId: {
+            assignmentId: assignment.id,
+            studentId: student.id,
+          },
+        },
+        update: {},
+        create: {
+          assignmentId: assignment.id,
+          studentId: student.id,
+          submissionText: faker.lorem.paragraph(),
+          submittedAt:
+            status !== 'draft' ? faker.date.recent({ days: 30 }) : null,
+          grade,
+          passed: isGraded ? grade !== null && grade >= 60 : null,
+          feedback: isGraded ? faker.lorem.sentence() : null,
+          gradedAt: isGraded ? faker.date.recent({ days: 14 }) : null,
+          status,
+        },
+      });
+    }
+    console.log(
+      `Seeded ${submitters.length} submissions for assignment: ${assignment.title}`,
+    );
+  }
+}
+
+async function seedCertificates() {
+  const existingCount = await prisma.certificate.count();
+  if (existingCount > 0) {
+    console.log('Certificates already seeded, skipping...');
+    return;
+  }
+
+  const completedEnrollments = await prisma.programEnrollment.findMany({
+    where: { status: 'completed' },
+    include: {
+      program: { include: { courses: { where: { deletedAt: null } } } },
+    },
+  });
+
+  if (completedEnrollments.length === 0) {
+    console.log('No completed enrollments found, skipping certificate seed.');
+    return;
+  }
+
+  let certCount = 0;
+  for (const enrollment of completedEnrollments) {
+    const courses = enrollment.program.courses;
+    if (courses.length === 0) continue;
+
+    const course = faker.helpers.arrayElement(courses);
+
+    const alreadyExists = await prisma.certificate.findFirst({
+      where: { userId: enrollment.userId, courseId: course.id },
+    });
+    if (alreadyExists) continue;
+
+    const certNumber = `CERT-${Date.now()}-${enrollment.userId.slice(0, 6).toUpperCase()}-${course.id.slice(0, 4).toUpperCase()}`;
+
+    await prisma.certificate.create({
+      data: {
+        userId: enrollment.userId,
+        courseId: course.id,
+        certNumber,
+        issuedAt: faker.date.recent({ days: 90 }),
+        fileUrl: faker.helpers.maybe(() => faker.internet.url(), {
+          probability: 0.7,
+        }),
+      },
+    });
+    certCount++;
+  }
+  console.log(`Seeded ${certCount} certificates.`);
+}
+
 async function main() {
   await seedAdmin();
   await seedUsers('instructor', 25);
@@ -650,9 +991,14 @@ async function main() {
   await seedLearningMaterials();
   await seedLearningMaterialCourseRelations();
   await seedLearningMaterialProgramRelations();
+  await seedClassSessions();
+  await seedClassAttendances();
+  await seedAssignments();
+  await seedAssignmentSubmissions();
+  await seedCertificates();
 
   console.log(
-    '\nSeed success! Total: 1 admin, 25 instructors, 25 students, profiles, 5 programs, 10 courses, enrollments, 25 learning materials with extensive course & program relations.',
+    '\nSeed success! Total: 1 admin, 25 instructors, 25 students, profiles, 5 programs, 10 courses, enrollments, 25 learning materials, class sessions, attendances, assignments, submissions, dan certificates.',
   );
 }
 
