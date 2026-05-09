@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsDateString,
   IsEnum,
   IsNotEmpty,
@@ -7,8 +8,11 @@ import {
   IsString,
   IsUUID,
   MaxLength,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { AssignmentStatus } from '@prisma/client';
+import { GradingCriteriaItemDto } from './grading-criteria-item.dto';
 
 export class CreateAssignmentDto {
   @IsUUID('4')
@@ -33,4 +37,10 @@ export class CreateAssignmentDto {
   @IsOptional()
   @IsEnum(AssignmentStatus)
   status?: AssignmentStatus;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => GradingCriteriaItemDto)
+  gradingCriteria?: GradingCriteriaItemDto[];
 }

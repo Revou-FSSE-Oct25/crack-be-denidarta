@@ -1,8 +1,6 @@
 import {
-  IsBoolean,
   IsDateString,
   IsEnum,
-  IsNumber,
   IsOptional,
   IsString,
   IsUUID,
@@ -29,18 +27,6 @@ export class CreateSubmissionDto {
   @IsOptional()
   @IsDateString()
   submittedAt?: string;
-
-  @IsOptional()
-  @IsNumber()
-  grade?: number;
-
-  @IsOptional()
-  @IsBoolean()
-  passed?: boolean;
-
-  @IsOptional()
-  @IsString()
-  feedback?: string;
 
   @IsOptional()
   @IsEnum(SubmissionStatus)

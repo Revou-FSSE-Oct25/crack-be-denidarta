@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateAssignmentDto } from './dto/create-assignment.dto';
 import { UpdateAssignmentDto } from './dto/update-assignment.dto';
+import { PaginationParams } from '../../common/utils/pagination.util';
 
 @Injectable()
 export class AssignmentRepository {
@@ -10,13 +12,35 @@ export class AssignmentRepository {
   // ---- Create ----
 
   create(dto: CreateAssignmentDto) {
-    return this.prisma.assignment.create({ data: dto });
+    const { gradingCriteria, ...rest } = dto;
+    return this.prisma.assignment.create({
+      data: {
+        ...rest,
+        ...(gradingCriteria !== undefined && {
+          gradingCriteria: gradingCriteria as unknown as Prisma.InputJsonValue,
+        }),
+      },
+    });
   }
 
   // ---- Read ----
 
-  findAll() {
-    return this.prisma.assignment.findMany({ where: { deletedAt: null } });
+  findAll(params: PaginationParams) {
+    const where = { deletedAt: null };
+    return this.prisma.$transaction([
+      this.prisma.assignment.findMany({
+        where,
+        skip: params.skip,
+        take: params.take,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          course: {
+            select: { name: true },
+          },
+        },
+      }),
+      this.prisma.assignment.count({ where }),
+    ]);
   }
 
   findOne(id: string) {
@@ -26,7 +50,16 @@ export class AssignmentRepository {
   // ---- Update ----
 
   update(id: string, dto: UpdateAssignmentDto) {
-    return this.prisma.assignment.update({ where: { id }, data: dto });
+    const { gradingCriteria, ...rest } = dto;
+    return this.prisma.assignment.update({
+      where: { id },
+      data: {
+        ...rest,
+        ...(gradingCriteria !== undefined && {
+          gradingCriteria: gradingCriteria as unknown as Prisma.InputJsonValue,
+        }),
+      },
+    });
   }
 
   // ---- Delete ----

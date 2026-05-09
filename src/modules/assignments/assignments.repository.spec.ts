@@ -8,7 +8,9 @@ const mockPrisma = {
     findMany: jest.fn(),
     findUnique: jest.fn(),
     update: jest.fn(),
+    count: jest.fn(),
   },
+  $transaction: jest.fn(),
 };
 
 describe('AssignmentRepository', () => {

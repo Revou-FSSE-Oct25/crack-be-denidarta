@@ -4,6 +4,11 @@ import { UpdateAssignmentDto } from './dto/update-assignment.dto';
 import { AssignmentRepository } from './assignments.repository';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { UserRole } from '@prisma/client';
+import {
+  PaginationQuery,
+  paginationParams,
+  paginatedResponse,
+} from '../../common/utils/pagination.util';
 
 @Injectable()
 export class AssignmentsService {
@@ -20,8 +25,10 @@ export class AssignmentsService {
     return this.assignmentRepository.create(dto);
   }
 
-  findAll() {
-    return this.assignmentRepository.findAll();
+  async findAll(query: PaginationQuery) {
+    const params = paginationParams(query);
+    const [data, total] = await this.assignmentRepository.findAll(params);
+    return paginatedResponse(data, total, params);
   }
 
   findOne(id: string) {
