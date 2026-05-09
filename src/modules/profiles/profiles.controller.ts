@@ -6,10 +6,13 @@ import {
   Patch,
   Param,
   Delete,
+  NotFoundException,
 } from '@nestjs/common';
 import { ProfilesService } from './profiles.service';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 
 @Controller('profiles')
 export class ProfilesController {
@@ -32,14 +35,31 @@ export class ProfilesController {
     return this.profilesService.findAll();
   }
 
+  @Get('me')
+  async getMyProfile(@CurrentUser() user: JwtPayload) {
+    const profile = await this.profilesService.findByUserId(user.sub);
+    if (!profile) {
+      throw new NotFoundException(`Profile for user ${user.sub} not found`);
+    }
+    return profile;
+  }
+
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.profilesService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const profile = await this.profilesService.findOne(id);
+    if (!profile) {
+      throw new NotFoundException(`Profile with id ${id} not found`);
+    }
+    return profile;
   }
 
   @Get('users/:userId')
-  findByUserId(@Param('userId') userId: string) {
-    return this.profilesService.findByUserId(userId);
+  async findByUserId(@Param('userId') userId: string) {
+    const profile = await this.profilesService.findByUserId(userId);
+    if (!profile) {
+      throw new NotFoundException(`Profile for user ${userId} not found`);
+    }
+    return profile;
   }
 
   // ---- Update ----

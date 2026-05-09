@@ -1,9 +1,11 @@
+import { Transform } from 'class-transformer';
 import {
   IsDateString,
   IsEnum,
   IsOptional,
   IsString,
   IsUrl,
+  Matches,
   MaxLength,
 } from 'class-validator';
 import { EducationLevel, Gender } from '@prisma/client';
@@ -14,6 +16,21 @@ export class CreateProfileDto {
   @IsString()
   @MaxLength(255)
   fullName?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^\+62\d{8,13}$/, {
+    message:
+      'Nomor handphone harus dalam format internasional E.164: +62xxxxxxxxxx',
+  })
+  @Transform(({ value }: { value: string }) => {
+    if (!value) return value;
+    const cleaned = value.replace(/[\s\-().]/g, '');
+    if (cleaned.startsWith('0')) return '+62' + cleaned.slice(1);
+    if (cleaned.startsWith('62')) return '+' + cleaned;
+    return cleaned;
+  })
+  phoneNumber?: string;
 
   @IsOptional()
   @IsDateString()
