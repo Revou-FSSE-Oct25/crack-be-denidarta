@@ -395,15 +395,16 @@ model Assignment {
   title       String           @db.VarChar(255)
   description String?
   dueDate     DateTime         @map("due_date")
-  maxPoints   Decimal          @default(100) @map("max_points") @db.Decimal(5, 2)
+  minPoints   Decimal          @default(0) @map("min_points") @db.Decimal(5, 2)
   status      AssignmentStatus @default(draft)
 
   // Dynamic grading criteria checklist defined by instructor.
+  // Total possible points = sum of all criteria[].points
   // Structure: Array of GradingCriteria
   // [
-  //   { "id": "uuid", "label": "Code Quality",  "points": 40, "description": "..." },
-  //   { "id": "uuid", "label": "Documentation", "points": 30, "description": "..." },
-  //   { "id": "uuid", "label": "Test Coverage", "points": 30, "description": "..." }
+  //   { "label": "Code Quality",  "points": 40, "description": "..." },
+  //   { "label": "Documentation", "points": 30, "description": "..." },
+  //   { "label": "Test Coverage", "points": 30, "description": "..." }
   // ]
   gradingCriteria Json? @map("grading_criteria")
 

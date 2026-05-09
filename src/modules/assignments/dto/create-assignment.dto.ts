@@ -32,7 +32,7 @@ export class CreateAssignmentDto {
 
   @IsOptional()
   @IsNumber()
-  maxPoints?: number;
+  minPoints?: number;
 
   @IsOptional()
   @IsEnum(AssignmentStatus)

@@ -12,9 +12,6 @@ import { UpdateSubmissionDto } from './dto/update-submission.dto';
 import { SubmissionsRepository } from './submissions.repository';
 import { GradingCriteriaItem } from './types/grading.types';
 
-/** Minimum pass threshold: student must earn at least this fraction of maxPoints. */
-const PASS_THRESHOLD = 0.6;
-
 @Injectable()
 export class SubmissionsService {
   constructor(private readonly submissionRepository: SubmissionsRepository) {}
@@ -133,9 +130,11 @@ export class SubmissionsService {
       throw new NotFoundException('Submission not found');
     }
 
-    const maxPoints = Number(submission.assignment.maxPoints);
-    const gradingCriteria = (submission.assignment as Record<string, unknown>)
-      .gradingCriteria as GradingCriteriaItem[] | null;
+    const assignmentData = submission.assignment as Record<string, unknown>;
+    const minPoints = Number(assignmentData.minPoints);
+    const gradingCriteria = assignmentData.gradingCriteria as
+      | GradingCriteriaItem[]
+      | null;
 
     // 3. Validate criteriaScores against the assignment's gradingCriteria
     if (gradingCriteria && gradingCriteria.length > 0) {
@@ -156,19 +155,16 @@ export class SubmissionsService {
       }
     }
 
-    // 4. Calculate total grade from criteriaScores (computed once, stored directly)
-    const totalGrade = dto.criteriaScores.reduce(
+    // 4. Calculate total grade from checked criteriaScores (computed once, stored directly)
+    const finalGrade = dto.criteriaScores.reduce(
       (sum, s) => sum + s.pointsAwarded,
       0,
     );
 
-    // 5. Clamp to maxPoints just in case criteria points were set inconsistently
-    const finalGrade = Math.min(totalGrade, maxPoints);
+    // 5. Passed if total grade meets the assignment's minimum passing points
+    const passed = finalGrade >= minPoints;
 
-    // 6. Determine passed based on threshold
-    const passed = finalGrade >= maxPoints * PASS_THRESHOLD;
-
-    // 7. Persist in a single write — grade won't need to be re-computed
+    // 6. Persist in a single write — grade won't need to be re-computed
     return this.submissionRepository.grade(id, {
       criteriaScores: dto.criteriaScores as unknown as Prisma.InputJsonValue,
       grade: finalGrade,
