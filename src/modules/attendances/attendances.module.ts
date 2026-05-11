@@ -6,5 +6,6 @@ import { AttendanceRepository } from './attendances.repository';
 @Module({
   controllers: [AttendancesController],
   providers: [AttendancesService, AttendanceRepository],
+  exports: [AttendancesService],
 })
 export class AttendancesModule {}

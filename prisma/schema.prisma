@@ -81,6 +81,7 @@ enum AttendanceStatus {
   absent
   late
   excused
+  unverified
 }
 
 enum AssignmentStatus {
@@ -372,6 +373,7 @@ model ClassAttendance {
   classSessionId String           @map("class_session_id")
   userId         String           @map("user_id")
   status         AttendanceStatus @default(present)
+  isVerified     Boolean          @default(false)
   verifiedAt     DateTime?        @map("verified_at")
   verifiedBy     String?          @map("verified_by")
 

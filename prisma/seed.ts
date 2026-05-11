@@ -841,7 +841,7 @@ async function seedAssignments() {
           title: `${template.title} ${i + 1}`,
           description: template.description,
           dueDate: faker.date.between({ from: '2025-03-01', to: '2025-12-31' }),
-          maxPoints: faker.helpers.arrayElement([50, 75, 100]),
+          minPoints: faker.helpers.arrayElement([50, 75, 100]),
           status,
         },
       });
