@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -24,8 +25,11 @@ export class ClassSessionsController {
   }
 
   @Get()
-  findAll() {
-    return this.classSessionsService.findAll();
+  findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.classSessionsService.findAll({
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+    });
   }
 
   @Get(':id')

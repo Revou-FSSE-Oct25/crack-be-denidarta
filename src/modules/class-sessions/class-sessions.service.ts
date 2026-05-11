@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { SessionStatus } from '@prisma/client';
+import {
+  PaginationQuery,
+  paginationParams,
+} from '../../common/utils/pagination.util';
 import { AttendancesService } from '../attendances/attendances.service';
 import { ClassSessionRepository } from './class-sessions.repository';
 import { CreateClassSessionDto } from './dto/create-class-session.dto';
@@ -16,8 +20,9 @@ export class ClassSessionsService {
     return this.classSessionRepository.create(dto);
   }
 
-  findAll() {
-    return this.classSessionRepository.findAll();
+  findAll(query: PaginationQuery) {
+    const params = paginationParams(query);
+    return this.classSessionRepository.findAll(params);
   }
 
   findOne(id: string) {

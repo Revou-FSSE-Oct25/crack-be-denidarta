@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { PaginationParams } from '../../common/utils/pagination.util';
 import { CreateClassSessionDto } from './dto/create-class-session.dto';
 import { UpdateClassSessionDto } from './dto/update-class-session.dto';
 
@@ -11,8 +12,18 @@ export class ClassSessionRepository {
     return this.prisma.classSession.create({ data: dto as never });
   }
 
-  findAll() {
-    return this.prisma.classSession.findMany({ where: { deletedAt: null } });
+  findAll(params: PaginationParams) {
+    return this.prisma.classSession.findMany({
+      where: { deletedAt: null },
+      skip: params.skip,
+      take: params.take,
+      orderBy: [{ sessionDate: 'asc' }, { startTime: 'asc' }],
+      include: {
+        course: {
+          select: { id: true, name: true },
+        },
+      },
+    });
   }
 
   findOne(id: string) {
