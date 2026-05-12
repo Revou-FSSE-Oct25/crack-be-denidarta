@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { AttendanceRepository } from './attendances.repository';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
@@ -12,8 +13,8 @@ export class AttendancesService {
     return this.attendanceRepository.create(dto);
   }
 
-  findAll() {
-    return this.attendanceRepository.findAll();
+  findAll(user: JwtPayload) {
+    return this.attendanceRepository.findAll(user);
   }
 
   findOne(id: string) {

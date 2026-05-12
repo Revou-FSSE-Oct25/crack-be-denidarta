@@ -29,11 +29,11 @@ export class AttendancesController {
     return this.attendancesService.create(createAttendanceDto);
   }
 
-  /** List all attendance records — instructor & admin only. */
+  /** List all attendance records. Students only see their own, scoped to enrolled programs/courses. */
   @Get()
-  @Roles(UserRole.instructor, UserRole.admin)
-  findAll() {
-    return this.attendancesService.findAll();
+  @Roles(UserRole.student, UserRole.instructor, UserRole.admin)
+  findAll(@CurrentUser() user: JwtPayload) {
+    return this.attendancesService.findAll(user);
   }
 
   /** Get a single attendance record — any authenticated user. */

@@ -26,4 +26,11 @@ export class EnrollmentRepository {
   remove(id: string) {
     return this.prisma.programEnrollment.delete({ where: { id } });
   }
+
+  findByUserId(userId: string) {
+    return this.prisma.programEnrollment.findMany({
+      where: { userId },
+      include: { program: { include: { courses: true } } },
+    });
+  }
 }

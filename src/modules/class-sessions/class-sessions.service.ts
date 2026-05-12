@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { SessionStatus } from '@prisma/client';
+import { SessionStatus, UserRole } from '@prisma/client';
+import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import {
   PaginationQuery,
   paginationParams,
@@ -20,9 +21,10 @@ export class ClassSessionsService {
     return this.classSessionRepository.create(dto);
   }
 
-  findAll(query: PaginationQuery) {
+  findAll(query: PaginationQuery, user: JwtPayload) {
     const params = paginationParams(query);
-    return this.classSessionRepository.findAll(params);
+    const userId = user.role === UserRole.student ? user.sub : undefined;
+    return this.classSessionRepository.findAll(params, userId);
   }
 
   findOne(id: string) {

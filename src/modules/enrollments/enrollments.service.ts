@@ -26,4 +26,8 @@ export class EnrollmentsService {
   remove(id: string) {
     return this.enrollmentRepository.remove(id);
   }
+
+  findByUserId(userId: string) {
+    return this.enrollmentRepository.findByUserId(userId);
+  }
 }

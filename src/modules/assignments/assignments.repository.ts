@@ -25,8 +25,20 @@ export class AssignmentRepository {
 
   // ---- Read ----
 
-  findAll(params: PaginationParams) {
-    const where = { deletedAt: null };
+  findAll(params: PaginationParams, userId?: string) {
+    const where = {
+      deletedAt: null,
+      ...(userId && {
+        course: {
+          program: {
+            programs: {
+              some: { userId },
+            },
+          },
+        },
+      }),
+    };
+
     return this.prisma.$transaction([
       this.prisma.assignment.findMany({
         where,

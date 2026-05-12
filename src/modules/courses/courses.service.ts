@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { JwtPayload } from '../../common/decorators/current-user.decorator';
+import { UserRole } from '@prisma/client';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { CourseRepository } from './courses.repository';
@@ -11,8 +13,10 @@ export class CoursesService {
     return this.courseRepository.create(dto);
   }
 
-  findAll() {
-    return this.courseRepository.findAll();
+  findAll(currentUser: JwtPayload) {
+    const userId =
+      currentUser.role === UserRole.student ? currentUser.sub : undefined;
+    return this.courseRepository.findAll(userId);
   }
 
   findOne(id: string) {

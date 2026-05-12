@@ -25,9 +25,13 @@ export class AssignmentsService {
     return this.assignmentRepository.create(dto);
   }
 
-  async findAll(query: PaginationQuery) {
+  async findAll(query: PaginationQuery, user: JwtPayload) {
     const params = paginationParams(query);
-    const [data, total] = await this.assignmentRepository.findAll(params);
+    const userId = user.role === UserRole.student ? user.sub : undefined;
+    const [data, total] = await this.assignmentRepository.findAll(
+      params,
+      userId,
+    );
     return paginatedResponse(data, total, params);
   }
 

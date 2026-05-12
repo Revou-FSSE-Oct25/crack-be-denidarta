@@ -12,9 +12,20 @@ export class ClassSessionRepository {
     return this.prisma.classSession.create({ data: dto as never });
   }
 
-  findAll(params: PaginationParams) {
+  findAll(params: PaginationParams, userId?: string) {
     return this.prisma.classSession.findMany({
-      where: { deletedAt: null },
+      where: {
+        deletedAt: null,
+        ...(userId && {
+          course: {
+            program: {
+              programs: {
+                some: { userId },
+              },
+            },
+          },
+        }),
+      },
       skip: params.skip,
       take: params.take,
       orderBy: [{ sessionDate: 'asc' }, { startTime: 'asc' }],

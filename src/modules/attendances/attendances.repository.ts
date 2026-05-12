@@ -3,7 +3,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { AttendanceStatus, EnrollmentStatus } from '@prisma/client';
+import { AttendanceStatus, EnrollmentStatus, UserRole } from '@prisma/client';
+import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
@@ -17,7 +18,32 @@ export class AttendanceRepository {
     return this.prisma.classAttendance.create({ data: dto });
   }
 
-  findAll() {
+  findAll(user: JwtPayload) {
+    if (user.role === UserRole.student) {
+      /**
+       * Students only see their own attendance records, scoped to courses
+       * that belong to programs they are actively enrolled in.
+       */
+      return this.prisma.classAttendance.findMany({
+        where: {
+          userId: user.sub,
+          classSession: {
+            course: {
+              program: {
+                programs: {
+                  some: {
+                    userId: user.sub,
+                    status: EnrollmentStatus.enrolled,
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    // admin / instructor — return everything
     return this.prisma.classAttendance.findMany();
   }
 

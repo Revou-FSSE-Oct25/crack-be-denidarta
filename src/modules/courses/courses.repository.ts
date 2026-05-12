@@ -11,9 +11,31 @@ export class CourseRepository {
     return this.prisma.course.create({ data: dto });
   }
 
-  findAll() {
+  findAll(userId?: string) {
     return this.prisma.course.findMany({
-      where: { deletedAt: null },
+      where: {
+        deletedAt: null,
+        ...(userId && {
+          program: {
+            programs: {
+              some: {
+                userId,
+                status: { in: ['enrolled', 'completed'] },
+              },
+            },
+          },
+        }),
+      },
+      include: {
+        instructor: { include: { profile: true } },
+        program: { select: { name: true } },
+      },
+    });
+  }
+
+  findInstructorCourses(id: string) {
+    return this.prisma.course.findMany({
+      where: { instructorId: id, deletedAt: null },
       include: {
         instructor: { include: { profile: true } },
       },

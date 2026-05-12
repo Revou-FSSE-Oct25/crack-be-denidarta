@@ -6,10 +6,14 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { CourseAccessGuard } from '../../common/guards/course-access.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 
 @Controller('courses')
 export class CoursesController {
@@ -21,10 +25,11 @@ export class CoursesController {
   }
 
   @Get()
-  findAll() {
-    return this.coursesService.findAll();
+  findAll(@CurrentUser() currentUser: JwtPayload) {
+    return this.coursesService.findAll(currentUser);
   }
 
+  @UseGuards(CourseAccessGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.coursesService.findOne(id);

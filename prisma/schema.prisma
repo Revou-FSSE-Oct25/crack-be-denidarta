@@ -213,6 +213,7 @@ model Program {
   creator           User                      @relation("CreatedPrograms", fields: [createdBy], references: [id])
   headOfProgram     User?                     @relation("ProgramHead", fields: [headOfProgramId], references: [id])
   programs          ProgramEnrollment[]
+  certificates      Certificate[]
   learningMaterials LearningMaterialProgram[]
   courses           Course[]
 
@@ -237,7 +238,6 @@ model Course {
 
   program           Program?                 @relation(fields: [programId], references: [id])
   instructor        User                     @relation("InstructorCourses", fields: [instructorId], references: [id])
-  certificates      Certificate[]
   learningMaterials LearningMaterialCourse[]
   classSessions     ClassSession[]
   assignments       Assignment[]
@@ -271,15 +271,16 @@ model Certificate {
   deletedAt DateTime? @map("deleted_at")
 
   userId     String   @map("user_id")
-  courseId   String   @map("course_id")
+  programId  String   @unique @map("program_id")
   issuedAt   DateTime @default(now()) @map("issued_at")
   certNumber String   @unique @map("cert_number") @db.VarChar(100)
   fileUrl    String?  @map("file_url")
 
-  user   User   @relation(fields: [userId], references: [id])
-  course Course @relation(fields: [courseId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+  program Program @relation(fields: [programId], references: [id])
 
-  @@unique([userId, courseId])
+  @@unique([userId, programId])
+  @@index([userId])
   @@map("certificates")
 }
 
