@@ -938,9 +938,6 @@ async function seedCertificates() {
 
   const completedEnrollments = await prisma.programEnrollment.findMany({
     where: { status: 'completed' },
-    include: {
-      program: { include: { courses: { where: { deletedAt: null } } } },
-    },
   });
 
   if (completedEnrollments.length === 0) {
@@ -950,22 +947,17 @@ async function seedCertificates() {
 
   let certCount = 0;
   for (const enrollment of completedEnrollments) {
-    const courses = enrollment.program.courses;
-    if (courses.length === 0) continue;
-
-    const course = faker.helpers.arrayElement(courses);
-
     const alreadyExists = await prisma.certificate.findFirst({
-      where: { userId: enrollment.userId, courseId: course.id },
+      where: { userId: enrollment.userId, programId: enrollment.programId },
     });
     if (alreadyExists) continue;
 
-    const certNumber = `CERT-${Date.now()}-${enrollment.userId.slice(0, 6).toUpperCase()}-${course.id.slice(0, 4).toUpperCase()}`;
+    const certNumber = `CERT-${Date.now()}-${enrollment.userId.slice(0, 6).toUpperCase()}-${enrollment.programId.slice(0, 4).toUpperCase()}`;
 
     await prisma.certificate.create({
       data: {
         userId: enrollment.userId,
-        courseId: course.id,
+        programId: enrollment.programId,
         certNumber,
         issuedAt: faker.date.recent({ days: 90 }),
         fileUrl: faker.helpers.maybe(() => faker.internet.url(), {
