@@ -123,13 +123,13 @@ describe('SubmissionsRepository', () => {
     });
   });
 
-  describe('remove', () => {
+  describe('softDelete', () => {
     it('soft deletes a submission by setting deletedAt', async () => {
       const deletedAt = new Date('2026-04-15T10:00:00.000Z');
       const softDeleted = { ...mockSubmission, deletedAt };
       mockAssignmentSubmission.update.mockResolvedValue(softDeleted);
 
-      const result = await repository.remove('uuid-1');
+      const result = await repository.softDelete('uuid-1');
 
       expect(mockAssignmentSubmission.update).toHaveBeenCalledWith({
         where: { id: 'uuid-1' },

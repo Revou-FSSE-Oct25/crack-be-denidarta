@@ -2,6 +2,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { faker } from '@faker-js/faker';
+import { randomUUID } from 'crypto';
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
@@ -936,8 +937,21 @@ async function seedCertificates() {
     return;
   }
 
+  // Only enrollments marked as completed are candidates for a certificate
   const completedEnrollments = await prisma.programEnrollment.findMany({
     where: { status: 'completed' },
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          profile: { select: { fullName: true } },
+        },
+      },
+      program: {
+        select: { id: true, name: true },
+      },
+    },
   });
 
   if (completedEnrollments.length === 0) {
@@ -946,27 +960,112 @@ async function seedCertificates() {
   }
 
   let certCount = 0;
+
   for (const enrollment of completedEnrollments) {
-    const alreadyExists = await prisma.certificate.findFirst({
-      where: { userId: enrollment.userId, programId: enrollment.programId },
+    const { user, program } = enrollment;
+
+    // Guard: skip if a certificate already exists for this student + program
+    const alreadyExists = await prisma.certificate.findUnique({
+      where: { userId_programId: { userId: user.id, programId: program.id } },
     });
     if (alreadyExists) continue;
 
-    const certNumber = `CERT-${Date.now()}-${enrollment.userId.slice(0, 6).toUpperCase()}-${enrollment.programId.slice(0, 4).toUpperCase()}`;
+    // ── Business rule ─────────────────────────────────────────────────────
+    // Every published / closed assignment in the program's courses must have
+    // a graded submission with passed = true before a certificate can be
+    // issued (mirrors the eligibility check in ProgramCertificatesService).
+    // ──────────────────────────────────────────────────────────────────────
+    const assignments = await prisma.assignment.findMany({
+      where: {
+        course: { programId: program.id, deletedAt: null },
+        status: { in: ['published', 'closed'] },
+        deletedAt: null,
+      },
+    });
+
+    // A program with no published/closed assignments can never be eligible
+    if (assignments.length === 0) continue;
+
+    // Upsert a passing, graded submission for every assignment that the
+    // student hasn't already passed — this ensures seed data is internally
+    // consistent with the eligibility business rule.
+    for (const assignment of assignments) {
+      const existingSubmission = await prisma.assignmentSubmission.findUnique({
+        where: {
+          assignmentId_studentId: {
+            assignmentId: assignment.id,
+            studentId: user.id,
+          },
+        },
+      });
+
+      const alreadyPassed =
+        existingSubmission?.status === 'graded' &&
+        existingSubmission?.passed === true;
+
+      if (!alreadyPassed) {
+        const grade = parseFloat(
+          faker.number
+            .float({ min: 75, max: 100, fractionDigits: 2 })
+            .toFixed(2),
+        );
+        await prisma.assignmentSubmission.upsert({
+          where: {
+            assignmentId_studentId: {
+              assignmentId: assignment.id,
+              studentId: user.id,
+            },
+          },
+          update: {
+            status: 'graded',
+            grade,
+            passed: true,
+            submittedAt: faker.date.recent({ days: 60 }),
+            gradedAt: faker.date.recent({ days: 30 }),
+            feedback: faker.lorem.sentence(),
+          },
+          create: {
+            assignmentId: assignment.id,
+            studentId: user.id,
+            submissionText: faker.lorem.paragraph(),
+            submittedAt: faker.date.recent({ days: 60 }),
+            status: 'graded',
+            grade,
+            passed: true,
+            gradedAt: faker.date.recent({ days: 30 }),
+            feedback: faker.lorem.sentence(),
+          },
+        });
+      }
+    }
+
+    // ── Build snapshots (mirrors service logic exactly) ───────────────────
+    const studentNameSnapshot = user.profile?.fullName ?? user.username;
+    const programNameSnapshot = program.name;
+
+    // Same certNumber format used by issueCertificate() in the service
+    const certNumber = `CERT-${randomUUID().replace(/-/g, '').toUpperCase().slice(0, 12)}`;
 
     await prisma.certificate.create({
       data: {
-        userId: enrollment.userId,
-        programId: enrollment.programId,
+        userId: user.id,
+        programId: program.id,
         certNumber,
         issuedAt: faker.date.recent({ days: 90 }),
+        studentNameSnapshot,
+        programNameSnapshot,
         fileUrl: faker.helpers.maybe(() => faker.internet.url(), {
           probability: 0.7,
         }),
       },
     });
+
     certCount++;
+    console.log(
+      `Issued certificate for "${studentNameSnapshot}" in program "${programNameSnapshot}"`,
+    );
   }
+
   console.log(`Seeded ${certCount} certificates.`);
 }
 

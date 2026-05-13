@@ -270,11 +270,13 @@ model Certificate {
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  userId     String   @map("user_id")
-  programId  String   @unique @map("program_id")
-  issuedAt   DateTime @default(now()) @map("issued_at")
-  certNumber String   @unique @map("cert_number") @db.VarChar(100)
-  fileUrl    String?  @map("file_url")
+  userId              String   @map("user_id")
+  programId           String   @map("program_id")
+  issuedAt            DateTime @default(now()) @map("issued_at")
+  certNumber          String   @unique @map("cert_number") @db.VarChar(100)
+  fileUrl             String?  @map("file_url")
+  studentNameSnapshot String   @map("student_name_snapshot") @db.VarChar(255)
+  programNameSnapshot String   @map("program_name_snapshot") @db.VarChar(255)
 
   user    User    @relation(fields: [userId], references: [id])
   program Program @relation(fields: [programId], references: [id])

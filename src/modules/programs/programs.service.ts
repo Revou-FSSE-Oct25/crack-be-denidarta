@@ -35,7 +35,7 @@ export class ProgramsService {
       skip,
       take,
     );
-    return [data.map(this.mapProgram.bind(this)), total] as const;
+    return [data.map((program) => this.mapProgram(program)), total] as const;
   }
 
   async findOne(id: string) {
