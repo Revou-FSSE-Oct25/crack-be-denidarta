@@ -402,6 +402,8 @@ model Assignment {
   dueDate     DateTime         @map("due_date")
   minPoints   Decimal          @default(0) @map("min_points") @db.Decimal(5, 2)
   status      AssignmentStatus @default(draft)
+  submitted   Int              @default(0)
+  toSubmit    Int              @default(0)
 
   // Dynamic grading criteria checklist defined by instructor.
   // Total possible points = sum of all criteria[].points

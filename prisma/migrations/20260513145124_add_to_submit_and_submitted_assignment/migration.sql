@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "assignments" ADD COLUMN     "submitted" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "toSubmit" INTEGER NOT NULL DEFAULT 0;

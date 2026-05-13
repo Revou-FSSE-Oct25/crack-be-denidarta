@@ -57,7 +57,7 @@ describe('SubmissionsController', () => {
       const result = await controller.findAll('3');
 
       expect(mockSubmissionsService.findAll).toHaveBeenCalledWith({
-        studentId: 3,
+        studentId: '3',
         assignmentId: undefined,
         courseId: undefined,
       });
@@ -75,7 +75,7 @@ describe('SubmissionsController', () => {
 
       expect(mockSubmissionsService.findAll).toHaveBeenCalledWith({
         studentId: undefined,
-        assignmentId: 5,
+        assignmentId: '5',
         courseId: undefined,
       });
       expect(result).toEqual(submissions);
@@ -92,7 +92,7 @@ describe('SubmissionsController', () => {
       expect(mockSubmissionsService.findAll).toHaveBeenCalledWith({
         studentId: undefined,
         assignmentId: undefined,
-        courseId: 2,
+        courseId: '2',
       });
       expect(result).toEqual(submissions);
     });

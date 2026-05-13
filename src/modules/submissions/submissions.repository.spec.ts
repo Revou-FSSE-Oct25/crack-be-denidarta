@@ -9,8 +9,25 @@ const mockAssignmentSubmission = {
   update: jest.fn(),
 };
 
+const mockAssignment = {
+  update: jest.fn(),
+};
+
 const mockPrisma = {
   assignmentSubmission: mockAssignmentSubmission,
+  assignment: mockAssignment,
+  $transaction: jest.fn(
+    (
+      cb: (tx: {
+        assignmentSubmission: typeof mockAssignmentSubmission;
+        assignment: typeof mockAssignment;
+      }) => Promise<unknown>,
+    ) =>
+      cb({
+        assignmentSubmission: mockAssignmentSubmission,
+        assignment: mockAssignment,
+      }),
+  ),
 } as unknown as PrismaService;
 
 const mockSubmission = {
@@ -39,18 +56,23 @@ describe('SubmissionsRepository', () => {
   afterEach(() => jest.clearAllMocks());
 
   describe('create', () => {
-    it('creates and returns a new submission', async () => {
+    it('creates the submission and increments assignment.submitted atomically', async () => {
       const dto = {
         assignmentId: 'uuid-assignment-1',
-        userId: 'uuid-user-1',
+        studentId: 'uuid-student-1',
         submissionText: 'My answer',
       };
       mockAssignmentSubmission.create.mockResolvedValue(mockSubmission);
+      mockAssignment.update.mockResolvedValue(undefined);
 
       const result = await repository.create(dto);
 
       expect(mockAssignmentSubmission.create).toHaveBeenCalledWith({
         data: dto,
+      });
+      expect(mockAssignment.update).toHaveBeenCalledWith({
+        where: { id: dto.assignmentId },
+        data: { submitted: { increment: 1 } },
       });
       expect(result).toEqual(mockSubmission);
     });
@@ -75,7 +97,7 @@ describe('SubmissionsRepository', () => {
       const result = await repository.findAll({ studentId: 'uuid-user-1' });
 
       expect(mockAssignmentSubmission.findMany).toHaveBeenCalledWith({
-        where: { deletedAt: null, userId: 'uuid-user-1' },
+        where: { deletedAt: null, studentId: 'uuid-user-1' },
       });
       expect(result).toEqual([mockSubmission]);
     });

@@ -11,7 +11,14 @@ export class SubmissionsRepository {
   // ---- Create ----
 
   create(dto: CreateSubmissionDto) {
-    return this.prisma.assignmentSubmission.create({ data: dto });
+    return this.prisma.$transaction(async (tx) => {
+      const submission = await tx.assignmentSubmission.create({ data: dto });
+      await tx.assignment.update({
+        where: { id: dto.assignmentId },
+        data: { submitted: { increment: 1 } },
+      });
+      return submission;
+    });
   }
 
   // ---- Read ----

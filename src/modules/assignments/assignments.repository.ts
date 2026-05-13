@@ -11,11 +11,24 @@ export class AssignmentRepository {
 
   // ---- Create ----
 
-  create(dto: CreateAssignmentDto) {
+  async create(dto: CreateAssignmentDto) {
     const { gradingCriteria, ...rest } = dto;
+
+    const course = await this.prisma.course.findUniqueOrThrow({
+      where: { id: dto.courseId },
+      select: { programId: true },
+    });
+
+    const toSubmit = course.programId
+      ? await this.prisma.programEnrollment.count({
+          where: { programId: course.programId, status: 'enrolled' },
+        })
+      : 0;
+
     return this.prisma.assignment.create({
       data: {
         ...rest,
+        toSubmit,
         ...(gradingCriteria !== undefined && {
           gradingCriteria: gradingCriteria as unknown as Prisma.InputJsonValue,
         }),

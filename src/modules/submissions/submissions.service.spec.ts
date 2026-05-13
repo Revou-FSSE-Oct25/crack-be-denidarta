@@ -1,25 +1,53 @@
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { SubmissionStatus, UserRole } from '@prisma/client';
+import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { SubmissionsService } from './submissions.service';
 import { SubmissionsRepository } from './submissions.repository';
-import { SubmissionStatus } from '@prisma/client';
+
+// ── Repository mock ──────────────────────────────────────────────────────────
 
 const mockCreate = jest.fn();
 const mockFindAll = jest.fn();
 const mockFindOne = jest.fn();
+const mockFindOneWithAssignment = jest.fn();
 const mockUpdate = jest.fn();
-const mockRemove = jest.fn();
+const mockSoftDelete = jest.fn();
+const mockGrade = jest.fn();
 
-const mockSubmissionsRepository = {
+const mockRepo = {
   create: mockCreate,
   findAll: mockFindAll,
   findOne: mockFindOne,
+  findOneWithAssignment: mockFindOneWithAssignment,
   update: mockUpdate,
-  remove: mockRemove,
+  softDelete: mockSoftDelete,
+  grade: mockGrade,
 } as unknown as SubmissionsRepository;
 
+// ── Fixtures ─────────────────────────────────────────────────────────────────
+
+const studentUser: JwtPayload = {
+  sub: 'uuid-student-1',
+  role: UserRole.student,
+  email: 'student@test.com',
+};
+
+const instructorUser: JwtPayload = {
+  sub: 'uuid-instructor-1',
+  role: UserRole.instructor,
+  email: 'instructor@test.com',
+};
+
+const adminUser: JwtPayload = {
+  sub: 'uuid-admin-1',
+  role: UserRole.admin,
+  email: 'admin@test.com',
+};
+
 const mockSubmission = {
-  id: 'uuid-1',
+  id: 'uuid-sub-1',
   assignmentId: 'uuid-assignment-1',
-  userId: 'uuid-user-1',
+  studentId: studentUser.sub,
   submissionText: 'My answer',
   fileUrl: null,
   submittedAt: new Date(),
@@ -32,124 +60,346 @@ const mockSubmission = {
   deletedAt: null,
 };
 
+// ── Suite ─────────────────────────────────────────────────────────────────────
+
 describe('SubmissionsService', () => {
   let service: SubmissionsService;
 
   beforeEach(() => {
-    service = new SubmissionsService(mockSubmissionsRepository);
+    service = new SubmissionsService(mockRepo);
   });
 
   afterEach(() => jest.clearAllMocks());
 
+  // ── create ──────────────────────────────────────────────────────────────────
+
   describe('create', () => {
-    it('creates and returns a new submission', async () => {
-      const dto = {
-        assignmentId: 'uuid-assignment-1',
-        userId: 'uuid-user-1',
-        submissionText: 'My answer',
-      };
+    const dto = {
+      assignmentId: 'uuid-assignment-1',
+      studentId: studentUser.sub,
+      submissionText: 'My answer',
+    };
+
+    it('allows a student to submit for themselves and increments submitted count', async () => {
       mockCreate.mockResolvedValue(mockSubmission);
 
-      const result = await service.create(dto);
+      const result = await service.create(dto, studentUser);
 
       expect(mockCreate).toHaveBeenCalledWith(dto);
       expect(result).toEqual(mockSubmission);
     });
+
+    it('allows an instructor to submit on behalf of a student', async () => {
+      mockCreate.mockResolvedValue(mockSubmission);
+
+      const result = await service.create(dto, instructorUser);
+
+      expect(mockCreate).toHaveBeenCalledWith(dto);
+      expect(result).toEqual(mockSubmission);
+    });
+
+    it('allows an admin to submit on behalf of a student', async () => {
+      mockCreate.mockResolvedValue(mockSubmission);
+
+      const result = await service.create(dto, adminUser);
+
+      expect(mockCreate).toHaveBeenCalledWith(dto);
+      expect(result).toEqual(mockSubmission);
+    });
+
+    it('throws ForbiddenException when a student submits for another student', async () => {
+      const otherStudentDto = { ...dto, studentId: 'uuid-student-other' };
+
+      await expect(
+        service.create(otherStudentDto, studentUser),
+      ).rejects.toThrow(ForbiddenException);
+      expect(mockCreate).not.toHaveBeenCalled();
+    });
   });
+
+  // ── findAll ──────────────────────────────────────────────────────────────────
 
   describe('findAll', () => {
     it('returns all submissions when no filter is provided', async () => {
-      const submissions = [
-        mockSubmission,
-        { ...mockSubmission, id: 'uuid-2', userId: 'uuid-user-2' },
-      ];
-      mockFindAll.mockResolvedValue(submissions);
+      mockFindAll.mockResolvedValue([mockSubmission]);
 
       const result = await service.findAll();
 
       expect(mockFindAll).toHaveBeenCalledWith({});
-      expect(result).toEqual(submissions);
+      expect(result).toEqual([mockSubmission]);
     });
 
-    it('returns submissions filtered by studentId', async () => {
-      const submissions = [mockSubmission];
-      mockFindAll.mockResolvedValue(submissions);
+    it('passes studentId filter to the repository', async () => {
+      mockFindAll.mockResolvedValue([mockSubmission]);
 
-      const result = await service.findAll({ studentId: 'uuid-user-1' });
+      await service.findAll({ studentId: studentUser.sub });
 
-      expect(mockFindAll).toHaveBeenCalledWith({
-        studentId: 'uuid-user-1',
-      });
-      expect(result).toEqual(submissions);
+      expect(mockFindAll).toHaveBeenCalledWith({ studentId: studentUser.sub });
     });
 
-    it('returns submissions filtered by assignmentId', async () => {
-      const submissions = [mockSubmission];
-      mockFindAll.mockResolvedValue(submissions);
+    it('passes assignmentId filter to the repository', async () => {
+      mockFindAll.mockResolvedValue([mockSubmission]);
 
-      const result = await service.findAll({
-        assignmentId: 'uuid-assignment-1',
-      });
+      await service.findAll({ assignmentId: 'uuid-assignment-1' });
 
       expect(mockFindAll).toHaveBeenCalledWith({
         assignmentId: 'uuid-assignment-1',
       });
-      expect(result).toEqual(submissions);
     });
 
-    it('returns submissions filtered by courseId', async () => {
-      const submissions = [mockSubmission];
-      mockFindAll.mockResolvedValue(submissions);
+    it('passes courseId filter to the repository', async () => {
+      mockFindAll.mockResolvedValue([mockSubmission]);
 
-      const result = await service.findAll({ courseId: 'uuid-course-1' });
+      await service.findAll({ courseId: 'uuid-course-1' });
 
-      expect(mockFindAll).toHaveBeenCalledWith({
-        courseId: 'uuid-course-1',
-      });
-      expect(result).toEqual(submissions);
+      expect(mockFindAll).toHaveBeenCalledWith({ courseId: 'uuid-course-1' });
     });
   });
+
+  // ── findOne ──────────────────────────────────────────────────────────────────
 
   describe('findOne', () => {
-    it('returns a single submission by id', async () => {
+    it('returns the submission when the requester is the owner', async () => {
       mockFindOne.mockResolvedValue(mockSubmission);
 
-      const result = await service.findOne('uuid-1');
+      const result = await service.findOne('uuid-sub-1', studentUser);
 
-      expect(mockFindOne).toHaveBeenCalledWith('uuid-1');
+      expect(mockFindOne).toHaveBeenCalledWith('uuid-sub-1');
       expect(result).toEqual(mockSubmission);
     });
-  });
 
-  describe('update', () => {
-    it('updates and returns the updated submission', async () => {
-      const dto = { status: SubmissionStatus.graded, grade: 90 };
-      const updated = { ...mockSubmission, ...dto };
-      mockUpdate.mockResolvedValue(updated);
+    it('returns the submission when the requester is an instructor', async () => {
+      mockFindOne.mockResolvedValue(mockSubmission);
 
-      const result = await service.update('uuid-1', dto);
+      const result = await service.findOne('uuid-sub-1', instructorUser);
 
-      expect(mockUpdate).toHaveBeenCalledWith('uuid-1', dto);
-      expect(result).toEqual(updated);
+      expect(result).toEqual(mockSubmission);
+    });
+
+    it('throws NotFoundException when submission does not exist', async () => {
+      mockFindOne.mockResolvedValue(null);
+
+      await expect(service.findOne('uuid-sub-1', studentUser)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('throws NotFoundException for soft-deleted submissions', async () => {
+      mockFindOne.mockResolvedValue({
+        ...mockSubmission,
+        deletedAt: new Date(),
+      });
+
+      await expect(service.findOne('uuid-sub-1', studentUser)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it("throws ForbiddenException when a student requests another student's submission", async () => {
+      const otherSubmission = {
+        ...mockSubmission,
+        studentId: 'uuid-student-other',
+      };
+      mockFindOne.mockResolvedValue(otherSubmission);
+
+      await expect(service.findOne('uuid-sub-1', studentUser)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 
+  // ── update ───────────────────────────────────────────────────────────────────
+
+  describe('update', () => {
+    const dto = { submissionText: 'Updated answer' };
+
+    it('allows the owner to update their submission', async () => {
+      const updated = { ...mockSubmission, ...dto };
+      mockFindOne.mockResolvedValue(mockSubmission);
+      mockUpdate.mockResolvedValue(updated);
+
+      const result = await service.update('uuid-sub-1', dto, studentUser);
+
+      expect(mockUpdate).toHaveBeenCalledWith('uuid-sub-1', dto);
+      expect(result).toEqual(updated);
+    });
+
+    it('allows an admin to update any submission', async () => {
+      mockFindOne.mockResolvedValue(mockSubmission);
+      mockUpdate.mockResolvedValue(mockSubmission);
+
+      await service.update('uuid-sub-1', dto, adminUser);
+
+      expect(mockUpdate).toHaveBeenCalledWith('uuid-sub-1', dto);
+    });
+
+    it('throws NotFoundException when submission does not exist', async () => {
+      mockFindOne.mockResolvedValue(null);
+
+      await expect(
+        service.update('uuid-sub-1', dto, studentUser),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it("throws ForbiddenException when a student tries to update another student's submission", async () => {
+      const otherSubmission = {
+        ...mockSubmission,
+        studentId: 'uuid-student-other',
+      };
+      mockFindOne.mockResolvedValue(otherSubmission);
+
+      await expect(
+        service.update('uuid-sub-1', dto, studentUser),
+      ).rejects.toThrow(ForbiddenException);
+      expect(mockUpdate).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── remove ───────────────────────────────────────────────────────────────────
+
   describe('remove', () => {
-    it('soft deletes a submission and persists it in the database', async () => {
-      const deletedAt = new Date('2026-04-15T10:00:00.000Z');
+    it('allows the owner to soft-delete their submission', async () => {
+      const deletedAt = new Date();
       const softDeleted = { ...mockSubmission, deletedAt };
-      mockRemove.mockResolvedValue(softDeleted);
+      mockFindOne.mockResolvedValue(mockSubmission);
+      mockSoftDelete.mockResolvedValue(softDeleted);
 
-      const result = await service.remove('uuid-1');
+      const result = await service.remove('uuid-sub-1', studentUser);
 
-      expect(mockRemove).toHaveBeenCalledWith('uuid-1');
-      expect(result).toMatchObject({
-        id: mockSubmission.id,
-        assignmentId: mockSubmission.assignmentId,
-        userId: mockSubmission.userId,
-        status: mockSubmission.status,
-        deletedAt,
+      expect(mockSoftDelete).toHaveBeenCalledWith('uuid-sub-1');
+      expect(result).toMatchObject({ id: 'uuid-sub-1', deletedAt });
+    });
+
+    it('throws NotFoundException when submission does not exist', async () => {
+      mockFindOne.mockResolvedValue(null);
+
+      await expect(service.remove('uuid-sub-1', studentUser)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it("throws ForbiddenException when a student tries to delete another student's submission", async () => {
+      const otherSubmission = {
+        ...mockSubmission,
+        studentId: 'uuid-student-other',
+      };
+      mockFindOne.mockResolvedValue(otherSubmission);
+
+      await expect(service.remove('uuid-sub-1', studentUser)).rejects.toThrow(
+        ForbiddenException,
+      );
+      expect(mockSoftDelete).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── grade ────────────────────────────────────────────────────────────────────
+
+  describe('grade', () => {
+    const gradingCriteria = [
+      { label: 'Code quality', points: 50 },
+      { label: 'Tests', points: 50 },
+    ];
+
+    const submissionWithAssignment = {
+      ...mockSubmission,
+      assignment: { minPoints: 70, gradingCriteria },
+    };
+
+    const gradeDto = {
+      criteriaScores: [
+        { criteriaIndex: 0, pointsAwarded: 40 },
+        { criteriaIndex: 1, pointsAwarded: 45 },
+      ],
+      feedback: 'Good work',
+    };
+
+    it('grades a submission and marks it as passed when total >= minPoints', async () => {
+      mockFindOneWithAssignment.mockResolvedValue(submissionWithAssignment);
+      mockGrade.mockResolvedValue({
+        ...mockSubmission,
+        grade: 85,
+        passed: true,
+        status: SubmissionStatus.graded,
       });
+
+      const result = await service.grade(
+        'uuid-sub-1',
+        gradeDto,
+        instructorUser,
+      );
+
+      expect(mockGrade).toHaveBeenCalledWith(
+        'uuid-sub-1',
+        expect.objectContaining({
+          grade: 85,
+          passed: true,
+          feedback: 'Good work',
+          gradedBy: instructorUser.sub,
+        }),
+      );
+      expect(result.passed).toBe(true);
+      expect(result.grade).toBe(85);
+    });
+
+    it('marks the submission as failed when total < minPoints', async () => {
+      const lowScoreDto = {
+        criteriaScores: [
+          { criteriaIndex: 0, pointsAwarded: 30 },
+          { criteriaIndex: 1, pointsAwarded: 20 },
+        ],
+      };
+      mockFindOneWithAssignment.mockResolvedValue(submissionWithAssignment);
+      mockGrade.mockResolvedValue({
+        ...mockSubmission,
+        grade: 50,
+        passed: false,
+        status: SubmissionStatus.graded,
+      });
+
+      const result = await service.grade('uuid-sub-1', lowScoreDto, adminUser);
+
+      expect(mockGrade).toHaveBeenCalledWith(
+        'uuid-sub-1',
+        expect.objectContaining({ grade: 50, passed: false }),
+      );
+      expect(result.passed).toBe(false);
+    });
+
+    it('throws ForbiddenException when a student tries to grade', async () => {
+      await expect(
+        service.grade('uuid-sub-1', gradeDto, studentUser),
+      ).rejects.toThrow(ForbiddenException);
+      expect(mockFindOneWithAssignment).not.toHaveBeenCalled();
+    });
+
+    it('throws NotFoundException when submission does not exist', async () => {
+      mockFindOneWithAssignment.mockResolvedValue(null);
+
+      await expect(
+        service.grade('uuid-sub-1', gradeDto, instructorUser),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws BadRequestException when criteriaIndex is out of bounds', async () => {
+      const badDto = {
+        criteriaScores: [{ criteriaIndex: 5, pointsAwarded: 10 }],
+      };
+      mockFindOneWithAssignment.mockResolvedValue(submissionWithAssignment);
+
+      await expect(
+        service.grade('uuid-sub-1', badDto, instructorUser),
+      ).rejects.toThrow(/criteriaIndex 5 is out of bounds/);
+    });
+
+    it('throws BadRequestException when pointsAwarded exceeds criteria max points', async () => {
+      const badDto = {
+        criteriaScores: [{ criteriaIndex: 0, pointsAwarded: 999 }],
+      };
+      mockFindOneWithAssignment.mockResolvedValue(submissionWithAssignment);
+
+      await expect(
+        service.grade('uuid-sub-1', badDto, instructorUser),
+      ).rejects.toThrow(/cannot exceed its max points/);
     });
   });
 });
