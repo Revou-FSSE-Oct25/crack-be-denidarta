@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
@@ -11,26 +12,75 @@ export class CourseRepository {
     return this.prisma.course.create({ data: dto });
   }
 
-  findAll(userId?: string) {
-    return this.prisma.course.findMany({
-      where: {
-        deletedAt: null,
-        ...(userId && {
-          program: {
-            programs: {
-              some: {
-                userId,
-                status: { in: ['enrolled', 'completed'] },
-              },
-            },
+  async findAll(
+    skip: number,
+    take: number,
+    search?: string,
+  ): Promise<[any[], number]> {
+    const where: Prisma.CourseWhereInput = {
+      deletedAt: null,
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' as const } },
+          { description: { contains: search, mode: 'insensitive' as const } },
+        ],
+      }),
+    };
+
+    const [data, total] = await Promise.all([
+      this.prisma.course.findMany({
+        where,
+        skip,
+        take,
+        include: {
+          instructor: { include: { profile: true } },
+          program: { select: { name: true } },
+        },
+      }),
+      this.prisma.course.count({ where }),
+    ]);
+
+    return [data, total];
+  }
+
+  async findStudentsCourse(
+    userId: string,
+    skip: number,
+    take: number,
+    search?: string,
+  ): Promise<[any[], number]> {
+    const where: Prisma.CourseWhereInput = {
+      deletedAt: null,
+      program: {
+        programs: {
+          some: {
+            userId: userId,
+            status: { in: ['enrolled', 'completed'] },
           },
-        }),
+        },
       },
-      include: {
-        instructor: { include: { profile: true } },
-        program: { select: { name: true } },
-      },
-    });
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' as const } },
+          { description: { contains: search, mode: 'insensitive' as const } },
+        ],
+      }),
+    };
+
+    const [data, total] = await Promise.all([
+      this.prisma.course.findMany({
+        where,
+        skip,
+        take,
+        include: {
+          instructor: { include: { profile: true } },
+          program: { select: { name: true } },
+        },
+      }),
+      this.prisma.course.count({ where }),
+    ]);
+
+    return [data, total];
   }
 
   findInstructorCourses(id: string) {

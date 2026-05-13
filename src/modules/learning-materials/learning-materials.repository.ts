@@ -53,28 +53,46 @@ export class LearningMaterialRepository {
     return this.findOne(learningMaterial.id);
   }
 
-  async findAll(page: number = 1, limit: number = 10) {
-    const skip = (page - 1) * limit;
-    const [data, total] = await Promise.all([
+  async findAll(
+    skip: number,
+    take: number,
+    search?: string,
+  ): Promise<[any[], number]> {
+    const where: Prisma.LearningMaterialWhereInput = {
+      deletedAt: null,
+      ...(search && {
+        OR: [{ title: { contains: search, mode: 'insensitive' as const } }],
+      }),
+    };
+    return Promise.all([
       this.prisma.learningMaterial.findMany({
-        where: { deletedAt: null },
-        include: {
-          uploader: { include: { profile: true } },
-          courses: { include: { course: true } },
-          programs: { include: { program: true } },
+        where,
+        select: {
+          id: true,
+          title: true,
+          materialType: true,
+          fileUrl: true,
+          orderIndex: true,
+          createdAt: true,
+          uploader: {
+            select: {
+              id: true,
+              profile: { select: { fullName: true } },
+            },
+          },
+          courses: {
+            select: { course: { select: { id: true, name: true } } },
+          },
+          programs: {
+            select: { program: { select: { id: true, name: true } } },
+          },
         },
         skip,
-        take: limit,
+        take,
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.learningMaterial.count({ where: { deletedAt: null } }),
+      this.prisma.learningMaterial.count({ where }),
     ]);
-    return {
-      data,
-      total,
-      page,
-      limit,
-    };
   }
 
   findOne(id: string) {

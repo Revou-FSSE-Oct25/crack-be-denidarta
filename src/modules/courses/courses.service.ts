@@ -13,10 +13,21 @@ export class CoursesService {
     return this.courseRepository.create(dto);
   }
 
-  findAll(currentUser: JwtPayload) {
-    const userId =
-      currentUser.role === UserRole.student ? currentUser.sub : undefined;
-    return this.courseRepository.findAll(userId);
+  findAll(
+    skip: number,
+    take: number,
+    search: string | undefined,
+    currentUser: JwtPayload,
+  ): Promise<[any[], number]> {
+    if (currentUser.role === UserRole.student) {
+      return this.courseRepository.findStudentsCourse(
+        currentUser.sub,
+        skip,
+        take,
+        search,
+      );
+    }
+    return this.courseRepository.findAll(skip, take, search);
   }
 
   findOne(id: string) {

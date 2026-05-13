@@ -11,6 +11,10 @@ import {
 import { LearningMaterialsService } from './learning-materials.service';
 import { CreateLearningMaterialDto } from './dto/create-learning-material.dto';
 import { UpdateLearningMaterialDto } from './dto/update-learning-material.dto';
+import {
+  paginationParams,
+  paginatedResponse,
+} from '../../common/utils/pagination.util';
 
 @Controller('learning-materials')
 export class LearningMaterialsController {
@@ -24,14 +28,18 @@ export class LearningMaterialsController {
   }
 
   @Get()
-  findAll(
-    @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10',
+  async findAll(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('search') search?: string,
   ) {
-    return this.learningMaterialsService.findAll(
-      parseInt(page, 10),
-      parseInt(limit, 10),
+    const params = paginationParams({ page, limit });
+    const [data, total] = await this.learningMaterialsService.findAll(
+      params.skip,
+      params.take,
+      search,
     );
+    return paginatedResponse(data, total, params);
   }
 
   @Get('course/:courseId')

@@ -13,8 +13,12 @@ export class LearningMaterialsService {
     return this.learningMaterialRepository.create(dto);
   }
 
-  findAll(page: number = 1, limit: number = 10) {
-    return this.learningMaterialRepository.findAll(page, limit);
+  findAll(
+    skip: number,
+    take: number,
+    search?: string,
+  ): Promise<[any[], number]> {
+    return this.learningMaterialRepository.findAll(skip, take, search);
   }
 
   findOne(id: string) {
