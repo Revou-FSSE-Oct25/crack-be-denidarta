@@ -7,36 +7,37 @@ import {
   Param,
   Delete,
   Query,
+  UseInterceptors,
+  ClassSerializerInterceptor,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { FindAllUsersDto } from './dto/find-all-users.dto';
+import { UserEntity } from './entities/user.entity';
 import {
   paginationParams,
   paginatedResponse,
 } from '../../common/utils/pagination.util';
 
 @Controller('users')
+@UseInterceptors(ClassSerializerInterceptor)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   // ---- Create ----
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto) {
+    const user = await this.usersService.create(createUserDto);
+    return new UserEntity(user);
   }
 
   // ---- Read ----
 
   @Get()
-  async findAll(
-    @Query('role') role?: string,
-    @Query('roles') rolesParam?: string,
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-    @Query('search') search?: string,
-  ) {
+  async findAll(@Query() query: FindAllUsersDto) {
+    const { role, roles: rolesParam, page, limit, search, status } = query;
     const params = paginationParams({ page, limit });
     const roles = rolesParam
       ? rolesParam
@@ -44,32 +45,39 @@ export class UsersController {
           .map((r) => r.trim())
           .filter(Boolean)
       : undefined;
-    const [data, total] = await this.usersService.findAllPaginated(
-      params.skip,
-      params.take,
+
+    const { items: data, total } = await this.usersService.findAllPaginated({
+      skip: params.skip,
+      take: params.take,
       role,
       search,
       roles,
-    );
-    return paginatedResponse(data, total, params);
+      status,
+    });
+
+    const items = data.map((user) => new UserEntity(user));
+    return paginatedResponse(items, total, params);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const user = await this.usersService.findOne(id);
+    return user ? new UserEntity(user) : null;
   }
 
   // ---- Update ----
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(id, updateUserDto);
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    const user = await this.usersService.update(id, updateUserDto);
+    return new UserEntity(user);
   }
 
   // ---- Delete ----
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+  async remove(@Param('id') id: string) {
+    const user = await this.usersService.remove(id);
+    return new UserEntity(user);
   }
 }

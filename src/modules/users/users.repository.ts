@@ -37,34 +37,39 @@ export class UserRepository {
     return this.prisma.user.findUnique({ where: { inviteToken } });
   }
 
-  findAllPaginated(
-    skip: number,
-    take: number,
-    role?: string,
-    search?: string,
-    roles?: string[],
-  ) {
-    const where = {
+  async findAllPaginated(options: {
+    skip: number;
+    take: number;
+    role?: string;
+    roles?: string[];
+    status?: string;
+    search?: string;
+  }) {
+    const { skip, take, role, roles, status, search } = options;
+
+    const where: any = {
       deletedAt: null,
-      ...(roles && roles.length > 0
-        ? { role: { in: roles as never[] } }
-        : role
-          ? { role: role as never }
-          : {}),
-      ...(search
-        ? {
-            OR: [
-              { username: { contains: search, mode: 'insensitive' as const } },
-              { email: { contains: search, mode: 'insensitive' as const } },
-            ],
-          }
-        : {}),
+      ...(status && { status }),
+      ...(roles?.length ? { role: { in: roles } } : role ? { role } : {}),
+      ...(search && {
+        OR: [
+          { username: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+          {
+            profile: {
+              fullName: { contains: search, mode: 'insensitive' },
+            },
+          },
+        ],
+      }),
     };
-    return Promise.all([
+
+    const [items, total] = await Promise.all([
       this.prisma.user.findMany({
         where,
         skip,
         take,
+        orderBy: { createdAt: 'desc' },
         include: {
           profile: {
             select: { fullName: true },
@@ -73,6 +78,8 @@ export class UserRepository {
       }),
       this.prisma.user.count({ where }),
     ]);
+
+    return { items, total };
   }
 
   // ---- Update ----
