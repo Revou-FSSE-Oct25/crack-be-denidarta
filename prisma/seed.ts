@@ -300,14 +300,14 @@ async function seedCourses() {
   for (let i = 0; i < courseTemplates.length; i++) {
     const template = courseTemplates[i];
     const instructor = instructors[i % instructors.length];
-    const program = programs.length > 0 ? programs[i % programs.length] : null;
+    const program = programs[i % programs.length];
 
     await prisma.course.create({
       data: {
         name: template.name,
         description: template.description,
         instructorId: instructor.id,
-        programId: program?.id ?? null,
+        programId: program.id,
         status: faker.helpers.weightedArrayElement([
           { value: 'active', weight: 3 },
           { value: 'draft', weight: 1 },
@@ -316,6 +316,10 @@ async function seedCourses() {
         startedAt: faker.date.between({
           from: '2025-01-01',
           to: '2026-06-01',
+        }),
+        endedAt: faker.date.between({
+          from: '2026-06-02',
+          to: '2027-01-01',
         }),
       },
     });
@@ -392,6 +396,10 @@ async function seedLearningMaterials() {
 
   if (instructors.length === 0)
     throw new Error('No instructors found. Run user seed first.');
+
+  const courses = await prisma.course.findMany();
+  if (courses.length === 0)
+    throw new Error('No courses found. Run course seed first.');
 
   const materialTemplates = [
     {
@@ -524,6 +532,7 @@ async function seedLearningMaterials() {
   for (let i = 0; i < materialTemplates.length; i++) {
     const template = materialTemplates[i];
     const instructor = instructors[i % instructors.length];
+    const course = courses[i % courses.length];
 
     await prisma.learningMaterial.create({
       data: {
@@ -531,119 +540,14 @@ async function seedLearningMaterials() {
         materialType: template.materialType,
         content: template.content,
         uploadedBy: instructor.id,
+        courseId: course.id,
         fileUrl: faker.system.filePath(),
       },
     });
     console.log(
-      `Seeded learning material: ${template.title} (${template.materialType})`,
+      `Seeded learning material: ${template.title} (${template.materialType}) → ${course.name}`,
     );
   }
-}
-
-async function seedLearningMaterialCourseRelations() {
-  const existingCount = await prisma.learningMaterialCourse.count();
-  if (existingCount > 0) {
-    console.log(
-      'Learning material course relations already seeded, skipping...',
-    );
-    return;
-  }
-
-  const materials = await prisma.learningMaterial.findMany();
-  const courses = await prisma.course.findMany();
-
-  if (materials.length === 0)
-    throw new Error('No learning materials found. Run material seed first.');
-  if (courses.length === 0)
-    throw new Error('No courses found. Run course seed first.');
-
-  for (const course of courses) {
-    // Randomly select 5-12 materials for this course
-    const materialCount = Math.floor(Math.random() * 8) + 5;
-    const shuffledMaterials = materials.sort(() => Math.random() - 0.5);
-    const selectedMaterials = shuffledMaterials.slice(0, materialCount);
-
-    for (let i = 0; i < selectedMaterials.length; i++) {
-      const material = selectedMaterials[i];
-
-      const existing = await prisma.learningMaterialCourse.findUnique({
-        where: {
-          learningMaterialId_courseId: {
-            learningMaterialId: material.id,
-            courseId: course.id,
-          },
-        },
-      });
-
-      if (existing) continue;
-
-      await prisma.learningMaterialCourse.create({
-        data: {
-          learningMaterialId: material.id,
-          courseId: course.id,
-        },
-      });
-
-      console.log(
-        `Seeded learning material course: ${material.title} → ${course.name}`,
-      );
-    }
-  }
-
-  console.log('Seeded learning material course relations complete!');
-}
-
-async function seedLearningMaterialProgramRelations() {
-  const existingCount = await prisma.learningMaterialProgram.count();
-  if (existingCount > 0) {
-    console.log(
-      'Learning material program relations already seeded, skipping...',
-    );
-    return;
-  }
-
-  const materials = await prisma.learningMaterial.findMany();
-  const programs = await prisma.program.findMany();
-
-  if (materials.length === 0)
-    throw new Error('No learning materials found. Run material seed first.');
-  if (programs.length === 0)
-    throw new Error('No programs found. Run program seed first.');
-
-  for (const program of programs) {
-    // Randomly select 8-15 materials for this program
-    const materialCount = Math.floor(Math.random() * 8) + 8;
-    const shuffledMaterials = materials.sort(() => Math.random() - 0.5);
-    const selectedMaterials = shuffledMaterials.slice(0, materialCount);
-
-    for (let i = 0; i < selectedMaterials.length; i++) {
-      const material = selectedMaterials[i];
-
-      const existing = await prisma.learningMaterialProgram.findUnique({
-        where: {
-          learningMaterialId_programId: {
-            learningMaterialId: material.id,
-            programId: program.id,
-          },
-        },
-      });
-
-      if (existing) continue;
-
-      await prisma.learningMaterialProgram.create({
-        data: {
-          learningMaterialId: material.id,
-          programId: program.id,
-        },
-      });
-
-      console.log(
-        `Seeded learning material program: ${material.title} → ${program.name}`,
-      );
-    }
-  }
-
-  console.log('Seeded learning material program relations complete!');
 }
 
 async function seedClassSessions() {
@@ -1079,8 +983,6 @@ async function main() {
   await seedCourses();
   await seedEnrollments();
   await seedLearningMaterials();
-  await seedLearningMaterialCourseRelations();
-  await seedLearningMaterialProgramRelations();
   await seedClassSessions();
   await seedClassAttendances();
   await seedAssignments();

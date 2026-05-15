@@ -1,4 +1,4 @@
-import { ForbiddenException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { AssignmentsService } from './assignments.service';
@@ -107,6 +107,13 @@ describe('AssignmentsService', () => {
   // ── findOne ───────────────────────────────────────────────────────────────────
 
   describe('findOne', () => {
+    it('throws NotFoundException when assignment is absent', async () => {
+      mockFindOne.mockResolvedValue(null);
+      await expect(service.findOne('bad-id', instructorUser)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
     it('returns the assignment including submitted and toSubmit counters', async () => {
       const assignment = {
         ...mockAssignment,

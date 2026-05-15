@@ -15,50 +15,44 @@ import { UpdateCourseDto } from './dto/update-course.dto';
 import { CourseAccessGuard } from '../../common/guards/course-access.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
-import {
-  paginatedResponse,
-  paginationParams,
-} from '../../common/utils/pagination.util';
+import { singleResponse } from '../../common/utils/pagination.util';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 @Controller('courses')
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
 
   @Post()
-  create(@Body() createCourseDto: CreateCourseDto) {
-    return this.coursesService.create(createCourseDto);
+  async create(@Body() createCourseDto: CreateCourseDto) {
+    return singleResponse(await this.coursesService.create(createCourseDto));
   }
 
   @Get()
-  async findAll(
+  findAll(
     @CurrentUser() currentUser: JwtPayload,
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-    @Query('search') search?: string,
+    @Query() query: PaginationQueryDto,
   ) {
-    const params = paginationParams({ page, limit });
-    const [data, total] = await this.coursesService.findAll(
-      params.skip,
-      params.take,
-      search,
-      currentUser,
-    );
-    return paginatedResponse(data, total, params);
+    return this.coursesService.findAll(query, currentUser);
   }
 
   @UseGuards(CourseAccessGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.coursesService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    return singleResponse(await this.coursesService.findOne(id));
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCourseDto: UpdateCourseDto) {
-    return this.coursesService.update(id, updateCourseDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateCourseDto: UpdateCourseDto,
+  ) {
+    return singleResponse(
+      await this.coursesService.update(id, updateCourseDto),
+    );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.coursesService.remove(id);
+  async remove(@Param('id') id: string) {
+    return singleResponse(await this.coursesService.remove(id));
   }
 }

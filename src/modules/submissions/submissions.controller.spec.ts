@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SubmissionsController } from './submissions.controller';
 import { SubmissionsService } from './submissions.service';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 const mockSubmissionsService = {
   create: jest.fn(),
@@ -9,6 +10,8 @@ const mockSubmissionsService = {
   update: jest.fn(),
   remove: jest.fn(),
 };
+
+const defaultQuery: PaginationQueryDto = { page: 1, limit: 10 };
 
 describe('SubmissionsController', () => {
   let controller: SubmissionsController;
@@ -32,92 +35,66 @@ describe('SubmissionsController', () => {
     const mockUser = { sub: 'user-1', role: 'admin' };
 
     it('returns all submissions when no filter is provided', async () => {
-      const submissions = [
-        { id: 1, studentId: 1, assignmentId: 1, courseId: 1 },
-        { id: 2, studentId: 2, assignmentId: 1, courseId: 1 },
-      ];
-      mockSubmissionsService.findAll.mockResolvedValue(submissions);
+      const paginated = {
+        data: [],
+        meta: { total: 0, page: 1, limit: 10, totalPages: 0 },
+      };
+      mockSubmissionsService.findAll.mockResolvedValue(paginated);
 
-      const result = await controller.findAll(mockUser as any);
+      const result = await controller.findAll(mockUser as any, defaultQuery);
 
       expect(mockSubmissionsService.findAll).toHaveBeenCalledWith(
-        {
-          studentId: undefined,
-          assignmentId: undefined,
-          courseId: undefined,
-        },
-        { page: undefined, limit: undefined },
+        { studentId: undefined, assignmentId: undefined, courseId: undefined },
+        defaultQuery,
         mockUser,
       );
-      expect(result).toEqual(submissions);
+      expect(result).toEqual(paginated);
     });
 
-    it('returns all submissions from a student across multiple courses', async () => {
-      const submissions = [
-        { id: 1, studentId: 3, assignmentId: 1, courseId: 1 },
-        { id: 2, studentId: 3, assignmentId: 3, courseId: 2 },
-        { id: 3, studentId: 3, assignmentId: 5, courseId: 3 },
-      ];
-      mockSubmissionsService.findAll.mockResolvedValue(submissions);
+    it('returns submissions filtered by studentId', async () => {
+      const paginated = {
+        data: [],
+        meta: { total: 3, page: 1, limit: 10, totalPages: 1 },
+      };
+      mockSubmissionsService.findAll.mockResolvedValue(paginated);
 
-      const result = await controller.findAll(mockUser as any, '3');
+      await controller.findAll(mockUser as any, defaultQuery, '3');
 
       expect(mockSubmissionsService.findAll).toHaveBeenCalledWith(
-        {
-          studentId: '3',
-          assignmentId: undefined,
-          courseId: undefined,
-        },
-        { page: undefined, limit: undefined },
+        { studentId: '3', assignmentId: undefined, courseId: undefined },
+        defaultQuery,
         mockUser,
       );
-      expect(result).toHaveLength(3);
-      expect(result).toEqual(submissions);
     });
 
     it('returns submissions filtered by assignmentId', async () => {
-      const submissions = [
-        { id: 1, studentId: 1, assignmentId: 5, courseId: 1 },
-      ];
-      mockSubmissionsService.findAll.mockResolvedValue(submissions);
+      mockSubmissionsService.findAll.mockResolvedValue({ data: [], meta: {} });
 
-      const result = await controller.findAll(mockUser as any, undefined, '5');
+      await controller.findAll(mockUser as any, defaultQuery, undefined, '5');
 
       expect(mockSubmissionsService.findAll).toHaveBeenCalledWith(
-        {
-          studentId: undefined,
-          assignmentId: '5',
-          courseId: undefined,
-        },
-        { page: undefined, limit: undefined },
+        { studentId: undefined, assignmentId: '5', courseId: undefined },
+        defaultQuery,
         mockUser,
       );
-      expect(result).toEqual(submissions);
     });
 
     it('returns submissions filtered by courseId', async () => {
-      const submissions = [
-        { id: 1, studentId: 1, assignmentId: 1, courseId: 2 },
-      ];
-      mockSubmissionsService.findAll.mockResolvedValue(submissions);
+      mockSubmissionsService.findAll.mockResolvedValue({ data: [], meta: {} });
 
-      const result = await controller.findAll(
+      await controller.findAll(
         mockUser as any,
+        defaultQuery,
         undefined,
         undefined,
         '2',
       );
 
       expect(mockSubmissionsService.findAll).toHaveBeenCalledWith(
-        {
-          studentId: undefined,
-          assignmentId: undefined,
-          courseId: '2',
-        },
-        { page: undefined, limit: undefined },
+        { studentId: undefined, assignmentId: undefined, courseId: '2' },
+        defaultQuery,
         mockUser,
       );
-      expect(result).toEqual(submissions);
     });
   });
 

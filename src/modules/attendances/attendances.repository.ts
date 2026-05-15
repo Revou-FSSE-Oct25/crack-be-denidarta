@@ -25,10 +25,6 @@ export class AttendanceRepository {
 
   findAll(user: JwtPayload) {
     if (user.role === UserRole.student) {
-      /**
-       * Students only see their own attendance records, scoped to courses
-       * that belong to programs they are actively enrolled in.
-       */
       return this.prisma.classAttendance.findMany({
         where: {
           userId: user.sub,
@@ -36,10 +32,7 @@ export class AttendanceRepository {
             course: {
               program: {
                 programs: {
-                  some: {
-                    userId: user.sub,
-                    status: EnrollmentStatus.enrolled,
-                  },
+                  some: { userId: user.sub, status: EnrollmentStatus.enrolled },
                 },
               },
             },
@@ -48,8 +41,45 @@ export class AttendanceRepository {
       });
     }
 
-    // admin / instructor — return everything
     return this.prisma.classAttendance.findMany();
+  }
+
+  async findAllPaginated(
+    user: JwtPayload,
+    skip: number,
+    take: number,
+  ): Promise<
+    [Prisma.ClassAttendanceGetPayload<{ include: { user: true } }>[], number]
+  > {
+    const where: Prisma.ClassAttendanceWhereInput =
+      user.role === UserRole.student
+        ? {
+            userId: user.sub,
+            classSession: {
+              course: {
+                program: {
+                  programs: {
+                    some: {
+                      userId: user.sub,
+                      status: EnrollmentStatus.enrolled,
+                    },
+                  },
+                },
+              },
+            },
+          }
+        : {};
+
+    return Promise.all([
+      this.prisma.classAttendance.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+        include: { user: true },
+      }),
+      this.prisma.classAttendance.count({ where }),
+    ]);
   }
 
   findOne(id: string) {

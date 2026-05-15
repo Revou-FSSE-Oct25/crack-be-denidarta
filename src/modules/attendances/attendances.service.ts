@@ -1,65 +1,102 @@
 import { Injectable } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { AttendanceRepository } from './attendances.repository';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 import { VerifyAttendanceDto } from './dto/verify-attendance.dto';
+import { ResponseAttendanceDto } from './dto/response-attendance.dto';
+import { ensureFound } from '../../common/utils/ensure-found.util';
+import {
+  paginationParams,
+  paginatedResponse,
+  PaginatedResponse,
+} from '../../common/utils/pagination.util';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 @Injectable()
 export class AttendancesService {
   constructor(private readonly attendanceRepository: AttendanceRepository) {}
 
-  create(dto: CreateAttendanceDto) {
-    return this.attendanceRepository.create(dto);
+  private toDto(data: Record<string, unknown>): ResponseAttendanceDto {
+    return plainToInstance(ResponseAttendanceDto, data, {
+      excludeExtraneousValues: true,
+    });
   }
 
-  findAll(user: JwtPayload) {
-    return this.attendanceRepository.findAll(user);
+  async create(dto: CreateAttendanceDto): Promise<ResponseAttendanceDto> {
+    const result = await this.attendanceRepository.create(dto);
+    return this.toDto(result as unknown as Record<string, unknown>);
   }
 
-  findOne(id: string) {
-    return this.attendanceRepository.findOne(id);
+  async findAll(
+    user: JwtPayload,
+    query: PaginationQueryDto,
+  ): Promise<PaginatedResponse<ResponseAttendanceDto>> {
+    const params = paginationParams(query);
+    const [data, total] = await this.attendanceRepository.findAllPaginated(
+      user,
+      params.skip,
+      params.take,
+    );
+    return paginatedResponse(
+      data.map((a) => this.toDto(a as unknown as Record<string, unknown>)),
+      total,
+      params,
+    );
+  }
+
+  async findOne(id: string): Promise<ResponseAttendanceDto> {
+    const result = await this.attendanceRepository.findOne(id);
+    return this.toDto(
+      ensureFound(result, `Attendance ${id} not found`) as unknown as Record<
+        string,
+        unknown
+      >,
+    );
   }
 
   findBySession(classSessionId: string) {
     return this.attendanceRepository.findBySession(classSessionId);
   }
 
-  update(id: string, dto: UpdateAttendanceDto) {
-    return this.attendanceRepository.update(id, dto);
+  async update(
+    id: string,
+    dto: UpdateAttendanceDto,
+  ): Promise<ResponseAttendanceDto> {
+    const result = await this.attendanceRepository.update(id, dto);
+    return this.toDto(result as unknown as Record<string, unknown>);
   }
 
   remove(id: string) {
     return this.attendanceRepository.remove(id);
   }
 
-  /**
-   * Triggered automatically when a ClassSession transitions to "ongoing".
-   * Creates unverified attendance records for every enrolled student.
-   */
   generateForSession(classSessionId: string) {
     return this.attendanceRepository.generateForSession(classSessionId);
   }
 
-  /**
-   * Student marks their own attendance as "present".
-   */
-  studentCheckIn(attendanceId: string, userId: string) {
-    return this.attendanceRepository.studentCheckIn(attendanceId, userId);
+  async studentCheckIn(
+    attendanceId: string,
+    userId: string,
+  ): Promise<ResponseAttendanceDto> {
+    const result = await this.attendanceRepository.studentCheckIn(
+      attendanceId,
+      userId,
+    );
+    return this.toDto(result as unknown as Record<string, unknown>);
   }
 
-  /**
-   * Admin / instructor verifies an attendance record.
-   */
-  verifyAttendance(
+  async verifyAttendance(
     attendanceId: string,
     verifierId: string,
     dto: VerifyAttendanceDto,
-  ) {
-    return this.attendanceRepository.verifyAttendance(
+  ): Promise<ResponseAttendanceDto> {
+    const result = await this.attendanceRepository.verifyAttendance(
       attendanceId,
       verifierId,
       dto,
     );
+    return this.toDto(result as unknown as Record<string, unknown>);
   }
 }

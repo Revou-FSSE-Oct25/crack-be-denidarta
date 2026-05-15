@@ -18,6 +18,7 @@ import { UserEntity } from './entities/user.entity';
 import {
   paginationParams,
   paginatedResponse,
+  singleResponse,
 } from '../../common/utils/pagination.util';
 
 @Controller('users')
@@ -30,7 +31,7 @@ export class UsersController {
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
     const user = await this.usersService.create(createUserDto);
-    return new UserEntity(user);
+    return singleResponse(new UserEntity(user));
   }
 
   // ---- Read ----
@@ -62,7 +63,7 @@ export class UsersController {
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const user = await this.usersService.findOne(id);
-    return user ? new UserEntity(user) : null;
+    return singleResponse(new UserEntity(user));
   }
 
   // ---- Update ----
@@ -70,7 +71,7 @@ export class UsersController {
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     const user = await this.usersService.update(id, updateUserDto);
-    return new UserEntity(user);
+    return singleResponse(new UserEntity(user));
   }
 
   // ---- Delete ----
@@ -78,6 +79,6 @@ export class UsersController {
   @Delete(':id')
   async remove(@Param('id') id: string) {
     const user = await this.usersService.remove(id);
-    return new UserEntity(user);
+    return singleResponse(new UserEntity(user));
   }
 }

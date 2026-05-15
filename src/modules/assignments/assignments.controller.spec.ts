@@ -70,22 +70,22 @@ describe('AssignmentsController', () => {
   // ── create ───────────────────────────────────────────────────────────────────
 
   describe('create', () => {
-    it('delegates to the service and returns the assignment with toSubmit and submitted', async () => {
+    it('delegates to the service and returns the assignment wrapped in data', async () => {
       mockCreate.mockResolvedValue(mockAssignment);
 
       const result = await controller.create(baseDto, instructorUser);
 
       expect(mockCreate).toHaveBeenCalledWith(baseDto, instructorUser);
-      // submitted starts at 0; toSubmit is populated from enrollment count by the repository
-      expect(result.submitted).toBe(0);
-      expect(result.toSubmit).toBe(5);
+      expect(result).toHaveProperty('data');
+      expect(result.data.submitted).toBe(0);
+      expect(result.data.toSubmit).toBe(5);
     });
   });
 
   // ── findOne ───────────────────────────────────────────────────────────────────
 
   describe('findOne', () => {
-    it('returns an assignment with up-to-date submitted and toSubmit counters', async () => {
+    it('returns an assignment wrapped in data with submitted and toSubmit counters', async () => {
       const assignment = { ...mockAssignment, submitted: 3, toSubmit: 5 };
       mockFindOne.mockResolvedValue(assignment);
 
@@ -98,15 +98,16 @@ describe('AssignmentsController', () => {
         'uuid-assignment-1',
         instructorUser,
       );
-      expect(result!.submitted).toBe(3);
-      expect(result!.toSubmit).toBe(5);
+      expect(result).toHaveProperty('data');
+      expect(result.data.submitted).toBe(3);
+      expect(result.data.toSubmit).toBe(5);
     });
   });
 
   // ── update ────────────────────────────────────────────────────────────────────
 
   describe('update', () => {
-    it('delegates update to the service and returns the result', async () => {
+    it('delegates update to the service and returns the result wrapped in data', async () => {
       const dto = { title: 'New Title' };
       const updated = { ...mockAssignment, ...dto };
       mockUpdate.mockResolvedValue(updated);
@@ -114,21 +115,23 @@ describe('AssignmentsController', () => {
       const result = await controller.update('uuid-assignment-1', dto);
 
       expect(mockUpdate).toHaveBeenCalledWith('uuid-assignment-1', dto);
-      expect(result.title).toBe('New Title');
+      expect(result).toHaveProperty('data');
+      expect(result.data.title).toBe('New Title');
     });
   });
 
   // ── remove ────────────────────────────────────────────────────────────────────
 
   describe('remove', () => {
-    it('delegates soft-delete to the service', async () => {
+    it('delegates soft-delete to the service and returns result wrapped in data', async () => {
       const deletedAt = new Date();
       mockRemove.mockResolvedValue({ ...mockAssignment, deletedAt });
 
       const result = await controller.remove('uuid-assignment-1');
 
       expect(mockRemove).toHaveBeenCalledWith('uuid-assignment-1');
-      expect(result.deletedAt).toEqual(deletedAt);
+      expect(result).toHaveProperty('data');
+      expect(result.data.deletedAt).toEqual(deletedAt);
     });
   });
 });

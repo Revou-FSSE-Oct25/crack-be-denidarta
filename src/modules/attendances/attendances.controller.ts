@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -14,69 +15,65 @@ import type { JwtPayload } from '../../common/decorators/current-user.decorator'
 import { AttendancesService } from './attendances.service';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { VerifyAttendanceDto } from './dto/verify-attendance.dto';
+import { singleResponse } from '../../common/utils/pagination.util';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 @Controller('attendances')
 export class AttendancesController {
   constructor(private readonly attendancesService: AttendancesService) {}
 
-  /**
-   * Manual attendance creation — admin only.
-   * Normal flow: records are auto-generated when session goes "ongoing".
-   */
   @Post()
   @Roles(UserRole.admin)
-  create(@Body() createAttendanceDto: CreateAttendanceDto) {
-    return this.attendancesService.create(createAttendanceDto);
+  async create(@Body() createAttendanceDto: CreateAttendanceDto) {
+    return singleResponse(
+      await this.attendancesService.create(createAttendanceDto),
+    );
   }
 
-  /** List all attendance records. Students only see their own, scoped to enrolled programs/courses. */
   @Get()
   @Roles(UserRole.student, UserRole.instructor, UserRole.admin)
-  findAll(@CurrentUser() user: JwtPayload) {
-    return this.attendancesService.findAll(user);
+  findAll(@CurrentUser() user: JwtPayload, @Query() query: PaginationQueryDto) {
+    return this.attendancesService.findAll(user, query);
   }
 
-  /** List all attendance records for a specific class session. */
   @Get('session/:sessionId')
   @Roles(UserRole.instructor, UserRole.admin)
-  findBySession(@Param('sessionId') sessionId: string) {
-    return this.attendancesService.findBySession(sessionId);
+  async findBySession(@Param('sessionId') sessionId: string) {
+    return singleResponse(
+      await this.attendancesService.findBySession(sessionId),
+    );
   }
 
-  /** Get a single attendance record — any authenticated user. */
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.attendancesService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    return singleResponse(await this.attendancesService.findOne(id));
   }
 
-  /**
-   * Student marks their own attendance as "present".
-   * The service validates that the attendance record belongs to the caller.
-   */
   @Patch(':id/check-in')
-  studentCheckIn(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
-    return this.attendancesService.studentCheckIn(id, user.sub);
+  async studentCheckIn(
+    @Param('id') id: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return singleResponse(
+      await this.attendancesService.studentCheckIn(id, user.sub),
+    );
   }
 
-  /**
-   * Admin / instructor verifies an attendance record.
-   * Can also override the student's status (e.g., mark as absent
-   * if the student falsely claimed to be present).
-   */
   @Patch(':id/verify')
   @Roles(UserRole.instructor, UserRole.admin)
-  verifyAttendance(
+  async verifyAttendance(
     @Param('id') id: string,
     @Body() dto: VerifyAttendanceDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.attendancesService.verifyAttendance(id, user.sub, dto);
+    return singleResponse(
+      await this.attendancesService.verifyAttendance(id, user.sub, dto),
+    );
   }
 
-  /** Hard-delete an attendance record — admin only. */
   @Delete(':id')
   @Roles(UserRole.admin)
-  remove(@Param('id') id: string) {
-    return this.attendancesService.remove(id);
+  async remove(@Param('id') id: string) {
+    return singleResponse(await this.attendancesService.remove(id));
   }
 }

@@ -90,33 +90,36 @@ export class ProgramCertificatesRepository {
     });
   }
 
-  /** List all (non-deleted) certificates issued to a user. */
-  findUserCertificates(userId: string) {
-    return this.prisma.certificate.findMany({
-      where: { userId, deletedAt: null },
-      include: {
-        program: { select: { id: true, name: true } },
-      },
-      orderBy: { issuedAt: 'desc' },
-    });
+  /** List all (non-deleted) certificates issued to a user, paginated. */
+  findUserCertificatesPaginated(userId: string, skip: number, take: number) {
+    const where = { userId, deletedAt: null };
+    return Promise.all([
+      this.prisma.certificate.findMany({
+        where,
+        include: { program: { select: { id: true, name: true } } },
+        orderBy: { issuedAt: 'desc' },
+        skip,
+        take,
+      }),
+      this.prisma.certificate.count({ where }),
+    ]);
   }
 
-  /** List every non-deleted certificate across all students. */
-  findAllCertificates() {
-    return this.prisma.certificate.findMany({
-      where: { deletedAt: null },
-      include: {
-        user: {
-          select: {
-            id: true,
-            username: true,
-            email: true,
-            profile: { select: { fullName: true } },
-          },
+  /** List every non-deleted certificate across all students, paginated. */
+  findAllCertificatesPaginated(skip: number, take: number) {
+    const where = { deletedAt: null };
+    return Promise.all([
+      this.prisma.certificate.findMany({
+        where,
+        include: {
+          user: { select: { id: true, username: true, email: true } },
+          program: { select: { id: true, name: true } },
         },
-        program: { select: { id: true, name: true } },
-      },
-      orderBy: { issuedAt: 'desc' },
-    });
+        orderBy: { issuedAt: 'desc' },
+        skip,
+        take,
+      }),
+      this.prisma.certificate.count({ where }),
+    ]);
   }
 }

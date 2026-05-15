@@ -4,13 +4,19 @@ import { ProgramRepository, ProgramResult } from './programs.repository';
 import { CreateProgramDto } from './dto/create-program.dto';
 import { UpdateProgramDto } from './dto/update-program.dto';
 import { ResponseProgramDto } from './dto/response-program.dto';
+import { ensureFound } from '../../common/utils/ensure-found.util';
+import {
+  paginationParams,
+  paginatedResponse,
+  PaginatedResponse,
+} from '../../common/utils/pagination.util';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 @Injectable()
 export class ProgramsService {
   constructor(private readonly programRepository: ProgramRepository) {}
 
   private toResponseDto(program: ProgramResult): ResponseProgramDto {
-    console.log('creator raw:', JSON.stringify(program.creator));
     return plainToInstance(
       ResponseProgramDto,
       {
@@ -52,17 +58,24 @@ export class ProgramsService {
     return this.toResponseDto(result);
   }
 
-  async findAllPaginated(skip: number, take: number) {
+  async findAll(
+    query: PaginationQueryDto,
+  ): Promise<PaginatedResponse<ResponseProgramDto>> {
+    const params = paginationParams(query);
     const [data, total] = await this.programRepository.findAllPaginated(
-      skip,
-      take,
+      params.skip,
+      params.take,
     );
-    return [data.map((program) => this.toResponseDto(program)), total] as const;
+    return paginatedResponse(
+      data.map((p) => this.toResponseDto(p)),
+      total,
+      params,
+    );
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<ResponseProgramDto> {
     const result = await this.programRepository.findOne(id);
-    return result ? this.toResponseDto(result) : null;
+    return this.toResponseDto(ensureFound(result, `Program ${id} not found`));
   }
 
   async update(id: string, dto: UpdateProgramDto) {

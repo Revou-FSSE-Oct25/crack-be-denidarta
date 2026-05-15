@@ -12,10 +12,8 @@ import { UserRole } from '@prisma/client';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
-import {
-  paginationParams,
-  paginatedResponse,
-} from '../../common/utils/pagination.util';
+import { singleResponse } from '../../common/utils/pagination.util';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { ClassSessionsService } from './class-sessions.service';
 import { CreateClassSessionDto } from './dto/create-class-session.dto';
 import { UpdateClassSessionDto } from './dto/update-class-session.dto';
@@ -26,39 +24,34 @@ export class ClassSessionsController {
 
   @Post()
   @Roles(UserRole.instructor, UserRole.admin)
-  create(@Body() createClassSessionDto: CreateClassSessionDto) {
-    return this.classSessionsService.create(createClassSessionDto);
+  async create(@Body() createClassSessionDto: CreateClassSessionDto) {
+    return singleResponse(
+      await this.classSessionsService.create(createClassSessionDto),
+    );
   }
 
   @Get()
-  async findAll(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-    @CurrentUser() user?: JwtPayload,
-  ) {
-    const params = paginationParams({ page, limit });
-    const [data, total] = await this.classSessionsService.findAll(
-      params,
-      user!,
-    );
-    return paginatedResponse(data, total, params);
+  findAll(@Query() query: PaginationQueryDto, @CurrentUser() user: JwtPayload) {
+    return this.classSessionsService.findAll(query, user);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.classSessionsService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    return singleResponse(await this.classSessionsService.findOne(id));
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateClassSessionDto: UpdateClassSessionDto,
   ) {
-    return this.classSessionsService.update(id, updateClassSessionDto);
+    return singleResponse(
+      await this.classSessionsService.update(id, updateClassSessionDto),
+    );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.classSessionsService.remove(id);
+  async remove(@Param('id') id: string) {
+    return singleResponse(await this.classSessionsService.remove(id));
   }
 }

@@ -7,8 +7,16 @@ import {
 } from '@nestjs/common';
 import { SubmissionStatus, UserRole } from '@prisma/client';
 import { randomUUID } from 'crypto';
+import { plainToInstance } from 'class-transformer';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { ProgramCertificatesRepository } from './program-certificates.repository';
+import { ResponseCertificateDto } from './dto/response-certificate.dto';
+import {
+  paginationParams,
+  paginatedResponse,
+  PaginatedResponse,
+} from '../../common/utils/pagination.util';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 // ─── Public types ─────────────────────────────────────────────────────────────
 
@@ -29,6 +37,12 @@ export interface EligibilityResult {
 @Injectable()
 export class ProgramCertificatesService {
   constructor(private readonly repo: ProgramCertificatesRepository) {}
+
+  private toDto(data: Record<string, unknown>): ResponseCertificateDto {
+    return plainToInstance(ResponseCertificateDto, data, {
+      excludeExtraneousValues: true,
+    });
+  }
 
   // ─── Eligibility ───────────────────────────────────────────────────
 
@@ -102,13 +116,14 @@ export class ProgramCertificatesService {
     // 5. Generate a collision-resistant cert number and persist
     const certNumber = `CERT-${randomUUID().replace(/-/g, '').toUpperCase().slice(0, 12)}`;
 
-    return this.repo.createCertificate({
+    const result = await this.repo.createCertificate({
       userId: studentId,
       programId,
       certNumber,
       studentNameSnapshot,
       programNameSnapshot,
     });
+    return this.toDto(result as unknown as Record<string, unknown>);
   }
 
   // ─── Read ──────────────────────────────────────────────────────────
@@ -145,24 +160,46 @@ export class ProgramCertificatesService {
       throw new NotFoundException('Certificate not found');
     }
 
-    return cert;
+    return this.toDto(cert as unknown as Record<string, unknown>);
   }
 
   /**
-   * List all certificates belonging to the currently authenticated student.
+   * List all certificates belonging to the currently authenticated student, paginated.
    */
-  getMyCertificates(currentUser: JwtPayload) {
-    return this.repo.findUserCertificates(currentUser.sub);
+  async getMyCertificates(
+    currentUser: JwtPayload,
+    query: PaginationQueryDto,
+  ): Promise<PaginatedResponse<ResponseCertificateDto>> {
+    const params = paginationParams(query);
+    const [data, total] = await this.repo.findUserCertificatesPaginated(
+      currentUser.sub,
+      params.skip,
+      params.take,
+    );
+    return paginatedResponse(
+      data.map((c) => this.toDto(c as unknown as Record<string, unknown>)),
+      total,
+      params,
+    );
   }
 
   /**
-   * List every certificate across all students.
-   * Only accessible by instructors (employees).
-   * The caller's identity is verified via the JWT payload injected by the
-   * global JwtAuthGuard / RolesGuard — no extra work needed here.
+   * List every certificate across all students, paginated.
    */
-  getAllCertificates(_currentUser: JwtPayload) {
-    return this.repo.findAllCertificates();
+  async getAllCertificates(
+    _currentUser: JwtPayload,
+    query: PaginationQueryDto,
+  ): Promise<PaginatedResponse<ResponseCertificateDto>> {
+    const params = paginationParams(query);
+    const [data, total] = await this.repo.findAllCertificatesPaginated(
+      params.skip,
+      params.take,
+    );
+    return paginatedResponse(
+      data.map((c) => this.toDto(c as unknown as Record<string, unknown>)),
+      total,
+      params,
+    );
   }
 
   // ─── Internal helpers ──────────────────────────────────────────────

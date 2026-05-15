@@ -6,6 +6,13 @@ import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { CourseRepository } from './courses.repository';
 import { ResponseCourseDto } from './dto/response-course.dto';
+import { ensureFound } from '../../common/utils/ensure-found.util';
+import {
+  paginationParams,
+  paginatedResponse,
+  PaginatedResponse,
+} from '../../common/utils/pagination.util';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 @Injectable()
 export class CoursesService {
@@ -18,10 +25,7 @@ export class CoursesService {
     const transformed = {
       ...data,
       instructor: data.instructor
-        ? {
-            userId: data.instructor.id,
-            profile: data.instructor.profile,
-          }
+        ? { userId: data.instructor.id, profile: data.instructor.profile }
         : null,
     };
     return plainToInstance(ResponseCourseDto, transformed, {
@@ -35,27 +39,33 @@ export class CoursesService {
   }
 
   async findAll(
-    skip: number,
-    take: number,
-    search: string | undefined,
+    query: PaginationQueryDto,
     currentUser: JwtPayload,
-  ): Promise<[ResponseCourseDto[], number]> {
+  ): Promise<PaginatedResponse<ResponseCourseDto>> {
+    const params = paginationParams(query);
     const [data, total] =
       currentUser.role === UserRole.student
         ? await this.courseRepository.findStudentsCourse(
             currentUser.sub,
-            skip,
-            take,
-            search,
+            params.skip,
+            params.take,
+            undefined,
           )
-        : await this.courseRepository.findAll(skip, take, search);
-
-    return [data.map((item) => this.toResponseDto(item)), total];
+        : await this.courseRepository.findAll(
+            params.skip,
+            params.take,
+            undefined,
+          );
+    return paginatedResponse(
+      data.map((item) => this.toResponseDto(item)),
+      total,
+      params,
+    );
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<ResponseCourseDto> {
     const result = await this.courseRepository.findOne(id);
-    return result ? this.toResponseDto(result) : null;
+    return this.toResponseDto(ensureFound(result, `Course ${id} not found`));
   }
 
   async update(id: string, dto: UpdateCourseDto) {

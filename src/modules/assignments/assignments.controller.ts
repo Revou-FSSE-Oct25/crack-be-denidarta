@@ -15,7 +15,8 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { ResponseAssignmentDto } from './dto/response-assignment.dto';
-import { PaginatedResponse } from '../../common/utils/pagination.util';
+import { singleResponse } from '../../common/utils/pagination.util';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 @ApiTags('assignments')
 @Controller('assignments')
@@ -23,11 +24,13 @@ export class AssignmentsController {
   constructor(private readonly assignmentsService: AssignmentsService) {}
 
   @Post()
-  create(
+  async create(
     @Body() createAssignmentDto: CreateAssignmentDto,
     @CurrentUser() currentUser: JwtPayload,
   ) {
-    return this.assignmentsService.create(createAssignmentDto, currentUser);
+    return singleResponse(
+      await this.assignmentsService.create(createAssignmentDto, currentUser),
+    );
   }
 
   @Get()
@@ -36,39 +39,28 @@ export class AssignmentsController {
     isArray: true,
     description: 'Paginated list of assignments',
   })
-  findAll(
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-    @CurrentUser() user?: JwtPayload,
-  ): Promise<PaginatedResponse<ResponseAssignmentDto>> {
-    return this.assignmentsService.findAll(
-      {
-        page: page ? Number(page) : undefined,
-        limit: limit ? Number(limit) : undefined,
-      },
-      user!,
-    );
+  findAll(@Query() query: PaginationQueryDto, @CurrentUser() user: JwtPayload) {
+    return this.assignmentsService.findAll(query, user);
   }
 
   @Get(':id')
   @ApiOkResponse({ type: ResponseAssignmentDto })
-  findOne(
-    @Param('id') id: string,
-    @CurrentUser() user?: JwtPayload,
-  ): Promise<ResponseAssignmentDto | null> {
-    return this.assignmentsService.findOne(id, user!);
+  async findOne(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return singleResponse(await this.assignmentsService.findOne(id, user));
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateAssignmentDto: UpdateAssignmentDto,
   ) {
-    return this.assignmentsService.update(id, updateAssignmentDto);
+    return singleResponse(
+      await this.assignmentsService.update(id, updateAssignmentDto),
+    );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.assignmentsService.remove(id);
+  async remove(@Param('id') id: string) {
+    return singleResponse(await this.assignmentsService.remove(id));
   }
 }

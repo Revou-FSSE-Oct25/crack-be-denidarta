@@ -11,42 +11,40 @@ import {
 import { ProgramsService } from './programs.service';
 import { CreateProgramDto } from './dto/create-program.dto';
 import { UpdateProgramDto } from './dto/update-program.dto';
-import {
-  paginationParams,
-  paginatedResponse,
-} from '../../common/utils/pagination.util';
+import { singleResponse } from '../../common/utils/pagination.util';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 @Controller('programs')
 export class ProgramsController {
   constructor(private readonly programsService: ProgramsService) {}
 
   @Post()
-  create(@Body() createProgramDto: CreateProgramDto) {
-    return this.programsService.create(createProgramDto);
+  async create(@Body() createProgramDto: CreateProgramDto) {
+    return singleResponse(await this.programsService.create(createProgramDto));
   }
 
   @Get()
-  async findAll(@Query('page') page?: number, @Query('limit') limit?: number) {
-    const params = paginationParams({ page, limit });
-    const [data, total] = await this.programsService.findAllPaginated(
-      params.skip,
-      params.take,
-    );
-    return paginatedResponse(data, total, params);
+  findAll(@Query() query: PaginationQueryDto) {
+    return this.programsService.findAll(query);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.programsService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    return singleResponse(await this.programsService.findOne(id));
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProgramDto: UpdateProgramDto) {
-    return this.programsService.update(id, updateProgramDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateProgramDto: UpdateProgramDto,
+  ) {
+    return singleResponse(
+      await this.programsService.update(id, updateProgramDto),
+    );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.programsService.remove(id);
+  async remove(@Param('id') id: string) {
+    return singleResponse(await this.programsService.remove(id));
   }
 }

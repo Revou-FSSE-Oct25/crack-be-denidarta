@@ -17,17 +17,25 @@ export class ProfilesRepository {
 
   // ---- Read ----
 
-  findAll() {
-    return this.prisma.profile.findMany({ where: { deletedAt: null } });
+  findAllPaginated(skip: number, take: number) {
+    return Promise.all([
+      this.prisma.profile.findMany({
+        where: { deletedAt: null },
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.profile.count({ where: { deletedAt: null } }),
+    ]);
   }
 
   findOne(id: string) {
-    return this.prisma.profile.findUnique({ where: { id } });
+    return this.prisma.profile.findFirst({ where: { id, deletedAt: null } });
   }
 
   findByUserId(userId: string) {
-    return this.prisma.profile.findUnique({
-      where: { userId },
+    return this.prisma.profile.findFirst({
+      where: { userId, deletedAt: null },
     });
   }
 

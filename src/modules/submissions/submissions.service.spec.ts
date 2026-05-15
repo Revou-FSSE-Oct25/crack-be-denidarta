@@ -131,8 +131,8 @@ describe('SubmissionsService', () => {
         {},
         expect.any(Object) as object,
       );
-      expect(result.items).toHaveLength(1);
-      expect(result.items[0]).toBeInstanceOf(ResponseSubmissionDto);
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0]).toBeInstanceOf(ResponseSubmissionDto);
     });
 
     it('passes studentId filter to the repository', async () => {

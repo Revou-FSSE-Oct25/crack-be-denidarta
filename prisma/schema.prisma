@@ -217,12 +217,11 @@ model Program {
   createdBy       String  @map("created_by")
   headOfProgramId String? @map("head_of_program_id")
 
-  creator           User                      @relation("CreatedPrograms", fields: [createdBy], references: [id])
-  headOfProgram     User?                     @relation("ProgramHead", fields: [headOfProgramId], references: [id])
-  programs          ProgramEnrollment[]
-  certificates      Certificate[]
-  learningMaterials LearningMaterialProgram[]
-  courses           Course[]
+  creator       User                @relation("CreatedPrograms", fields: [createdBy], references: [id])
+  headOfProgram User?               @relation("ProgramHead", fields: [headOfProgramId], references: [id])
+  programs      ProgramEnrollment[]
+  certificates  Certificate[]
+  courses       Course[]
 
   @@index([createdBy])
   @@index([headOfProgramId])
@@ -235,17 +234,17 @@ model Course {
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  programId    String?      @map("program_id")
+  programId    String       @map("program_id")
   instructorId String       @map("instructor_id")
   name         String       @db.VarChar(255)
   description  String?
-  startedAt    DateTime?    @map("started_at")
-  endedAt      DateTime?    @map("ended_at")
+  startedAt    DateTime     @map("started_at")
+  endedAt      DateTime     @map("ended_at")
   status       CourseStatus @default(draft)
 
-  program           Program?                 @relation(fields: [programId], references: [id])
-  instructor        User                     @relation("InstructorCourses", fields: [instructorId], references: [id])
-  learningMaterials LearningMaterialCourse[]
+  program           Program            @relation(fields: [programId], references: [id])
+  instructor        User               @relation("InstructorCourses", fields: [instructorId], references: [id])
+  learningMaterials LearningMaterial[]
   classSessions     ClassSession[]
   assignments       Assignment[]
 
@@ -302,52 +301,19 @@ model LearningMaterial {
   deletedAt DateTime? @map("deleted_at")
 
   uploadedBy   String       @map("uploaded_by")
+  courseId     String       @map("course_id")
   title        String       @db.VarChar(255)
   content      String?
   fileUrl      String?      @map("file_url")
   materialType MaterialType @map("material_type")
   orderIndex   Int          @default(0) @map("order_index") @db.SmallInt
 
-  uploader User                      @relation(fields: [uploadedBy], references: [id])
-  courses  LearningMaterialCourse[]
-  programs LearningMaterialProgram[]
+  uploader User   @relation(fields: [uploadedBy], references: [id])
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@index([uploadedBy])
-  @@map("learning_materials")
-}
-
-model LearningMaterialCourse {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now()) @map("created_at")
-
-  learningMaterialId String @map("learning_material_id")
-  courseId           String @map("course_id")
-  orderIndex         Int    @default(0) @map("order_index") @db.SmallInt
-
-  learningMaterial LearningMaterial @relation(fields: [learningMaterialId], references: [id], onDelete: Cascade)
-  course           Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
-
-  @@unique([learningMaterialId, courseId])
   @@index([courseId])
-  @@index([learningMaterialId])
-  @@map("learning_material_courses")
-}
-
-model LearningMaterialProgram {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now()) @map("created_at")
-
-  learningMaterialId String @map("learning_material_id")
-  programId          String @map("program_id")
-  orderIndex         Int    @default(0) @map("order_index") @db.SmallInt
-
-  learningMaterial LearningMaterial @relation(fields: [learningMaterialId], references: [id], onDelete: Cascade)
-  program          Program          @relation(fields: [programId], references: [id], onDelete: Cascade)
-
-  @@unique([learningMaterialId, programId])
-  @@index([programId])
-  @@index([learningMaterialId])
-  @@map("learning_material_programs")
+  @@map("learning_materials")
 }
 
 // ─── CLASS SESSION & ATTENDANCE ────────────────────────────────────

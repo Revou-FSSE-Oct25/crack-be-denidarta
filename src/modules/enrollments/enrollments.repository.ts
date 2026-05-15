@@ -8,19 +8,37 @@ export class EnrollmentRepository {
   constructor(private prisma: PrismaService) {}
 
   create(dto: CreateEnrollmentDto) {
-    return this.prisma.programEnrollment.create({ data: dto });
+    return this.prisma.programEnrollment.create({
+      data: dto,
+      include: { user: true, program: true },
+    });
   }
 
-  findAll() {
-    return this.prisma.programEnrollment.findMany();
+  findAllPaginated(skip: number, take: number) {
+    return Promise.all([
+      this.prisma.programEnrollment.findMany({
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+        include: { user: true, program: true },
+      }),
+      this.prisma.programEnrollment.count(),
+    ]);
   }
 
   findOne(id: string) {
-    return this.prisma.programEnrollment.findUnique({ where: { id } });
+    return this.prisma.programEnrollment.findUnique({
+      where: { id },
+      include: { user: true, program: true },
+    });
   }
 
   update(id: string, dto: UpdateEnrollmentDto) {
-    return this.prisma.programEnrollment.update({ where: { id }, data: dto });
+    return this.prisma.programEnrollment.update({
+      where: { id },
+      data: dto,
+      include: { user: true, program: true },
+    });
   }
 
   remove(id: string) {
@@ -30,7 +48,10 @@ export class EnrollmentRepository {
   findByUserId(userId: string) {
     return this.prisma.programEnrollment.findMany({
       where: { userId },
-      include: { program: { include: { courses: true } } },
+      include: {
+        user: true,
+        program: { include: { courses: true } },
+      },
     });
   }
 }

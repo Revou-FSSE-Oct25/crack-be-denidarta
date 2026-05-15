@@ -11,7 +11,7 @@ export interface PaginationParams {
 }
 
 export interface PaginatedResponse<T> {
-  items: T[];
+  data: T[];
   meta: {
     total: number;
     page: number;
@@ -20,31 +20,23 @@ export interface PaginatedResponse<T> {
   };
 }
 
-/**
- * Hitung skip & take dari page/limit query params.
- * Default: page=1, limit=10. Max limit: 100.
- */
+export function singleResponse<T>(data: T): { data: T } {
+  return { data };
+}
+
 export function paginationParams(query: PaginationQuery): PaginationParams {
   const page = Math.max(1, Number(query.page) || 1);
   const limit = Math.min(100, Math.max(1, Number(query.limit) || 10));
-  return {
-    page,
-    limit,
-    skip: (page - 1) * limit,
-    take: limit,
-  };
+  return { page, limit, skip: (page - 1) * limit, take: limit };
 }
 
-/**
- * Bungkus hasil query dengan metadata pagination.
- */
 export function paginatedResponse<T>(
   data: T[],
   total: number,
   params: PaginationParams,
 ): PaginatedResponse<T> {
   return {
-    items: data,
+    data,
     meta: {
       total,
       page: params.page,

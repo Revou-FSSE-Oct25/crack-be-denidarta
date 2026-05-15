@@ -11,10 +11,8 @@ import {
 import { LearningMaterialsService } from './learning-materials.service';
 import { CreateLearningMaterialDto } from './dto/create-learning-material.dto';
 import { UpdateLearningMaterialDto } from './dto/update-learning-material.dto';
-import {
-  paginationParams,
-  paginatedResponse,
-} from '../../common/utils/pagination.util';
+import { singleResponse } from '../../common/utils/pagination.util';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 @Controller('learning-materials')
 export class LearningMaterialsController {
@@ -23,23 +21,18 @@ export class LearningMaterialsController {
   ) {}
 
   @Post()
-  create(@Body() createLearningMaterialDto: CreateLearningMaterialDto) {
-    return this.learningMaterialsService.create(createLearningMaterialDto);
+  async create(@Body() createLearningMaterialDto: CreateLearningMaterialDto) {
+    return singleResponse(
+      await this.learningMaterialsService.create(createLearningMaterialDto),
+    );
   }
 
   @Get()
-  async findAll(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
+  findAll(
+    @Query() query: PaginationQueryDto,
     @Query('search') search?: string,
   ) {
-    const params = paginationParams({ page, limit });
-    const [data, total] = await this.learningMaterialsService.findAll(
-      params.skip,
-      params.take,
-      search,
-    );
-    return paginatedResponse(data, total, params);
+    return this.learningMaterialsService.findAll(query, search);
   }
 
   @Get('course/:courseId')
@@ -47,26 +40,23 @@ export class LearningMaterialsController {
     return this.learningMaterialsService.findByCourse(courseId);
   }
 
-  @Get('program/:programId')
-  findByProgram(@Param('programId') programId: string) {
-    return this.learningMaterialsService.findByProgram(programId);
-  }
-
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.learningMaterialsService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    return singleResponse(await this.learningMaterialsService.findOne(id));
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateLearningMaterialDto: UpdateLearningMaterialDto,
   ) {
-    return this.learningMaterialsService.update(id, updateLearningMaterialDto);
+    return singleResponse(
+      await this.learningMaterialsService.update(id, updateLearningMaterialDto),
+    );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.learningMaterialsService.remove(id);
+  async remove(@Param('id') id: string) {
+    return singleResponse(await this.learningMaterialsService.remove(id));
   }
 }

@@ -1,4 +1,5 @@
 import {
+  IsDateString,
   IsEnum,
   IsNotEmpty,
   IsOptional,
@@ -24,4 +25,13 @@ export class CreateCourseDto {
 
   @IsUUID('4')
   instructorId: string;
+
+  @IsUUID('4')
+  programId: string;
+
+  @IsDateString()
+  startedAt: string;
+
+  @IsDateString()
+  endedAt: string;
 }

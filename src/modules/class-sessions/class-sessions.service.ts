@@ -2,12 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { SessionStatus, UserRole } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
-import { PaginationParams } from '../../common/utils/pagination.util';
 import { AttendancesService } from '../attendances/attendances.service';
 import { ClassSessionRepository } from './class-sessions.repository';
 import { CreateClassSessionDto } from './dto/create-class-session.dto';
 import { UpdateClassSessionDto } from './dto/update-class-session.dto';
 import { ResponseClassSessionDto } from './dto/response-class-session.dto';
+import { ensureFound } from '../../common/utils/ensure-found.util';
+import {
+  paginationParams,
+  paginatedResponse,
+  PaginatedResponse,
+} from '../../common/utils/pagination.util';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 @Injectable()
 export class ClassSessionsService {
@@ -38,26 +44,30 @@ export class ClassSessionsService {
     return this.toResponseDto(result);
   }
 
-  async findAll(params: PaginationParams, user: JwtPayload) {
+  async findAll(
+    query: PaginationQueryDto,
+    user: JwtPayload,
+  ): Promise<PaginatedResponse<ResponseClassSessionDto>> {
+    const params = paginationParams(query);
     const userId = user.role === UserRole.student ? user.sub : undefined;
     const { data, total } = await this.classSessionRepository.findAll(
       params,
       userId,
     );
-
-    return [data.map((item) => this.toResponseDto(item)), total] as const;
+    return paginatedResponse(
+      data.map((item) => this.toResponseDto(item)),
+      total,
+      params,
+    );
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<ResponseClassSessionDto> {
     const result = await this.classSessionRepository.findOne(id);
-    return result ? this.toResponseDto(result) : null;
+    return this.toResponseDto(
+      ensureFound(result, `Class session ${id} not found`),
+    );
   }
 
-  /**
-   * Updates a class session.
-   * When status transitions to "ongoing", automatically generates
-   * unverified attendance records for all enrolled students.
-   */
   async update(id: string, dto: UpdateClassSessionDto) {
     const updated = await this.classSessionRepository.update(id, dto);
 

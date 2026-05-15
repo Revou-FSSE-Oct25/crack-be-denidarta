@@ -19,93 +19,102 @@ import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { UpdateSubmissionDto } from './dto/update-submission.dto';
 import { GradeSubmissionDto } from './dto/grade-submission.dto';
 import { SubmitAssignmentDto } from './dto/submit-assignment.dto';
+import { singleResponse } from '../../common/utils/pagination.util';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 @Controller('submissions')
 export class SubmissionsController {
   constructor(private readonly submissionsService: SubmissionsService) {}
 
   @Post()
-  create(
+  async create(
     @Body() createSubmissionDto: CreateSubmissionDto,
     @CurrentUser() currentUser: JwtPayload,
   ) {
-    return this.submissionsService.create(createSubmissionDto, currentUser);
+    return singleResponse(
+      await this.submissionsService.create(createSubmissionDto, currentUser),
+    );
   }
 
-  /**
-   * PATCH /submissions/:id/submit
-   *
-   * Student submits their assignment.
-   * Updates status to 'submitted' and records the submission time.
-   */
   @Patch(':id/submit')
-  submit(
+  async submit(
     @Param('id') id: string,
     @Body() submitAssignmentDto: SubmitAssignmentDto,
     @CurrentUser() currentUser: JwtPayload,
   ) {
-    return this.submissionsService.submitAssignmentByStudent(
-      id,
-      submitAssignmentDto,
-      currentUser,
+    return singleResponse(
+      await this.submissionsService.submitAssignmentByStudent(
+        id,
+        submitAssignmentDto,
+        currentUser,
+      ),
     );
   }
 
   @Get()
   findAll(
     @CurrentUser() currentUser: JwtPayload,
+    @Query() query: PaginationQueryDto,
     @Query('studentId') studentId?: string,
     @Query('assignmentId') assignmentId?: string,
     @Query('courseId') courseId?: string,
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
   ) {
     return this.submissionsService.findAll(
       {
-        studentId: studentId ? studentId : undefined,
-        assignmentId: assignmentId ? assignmentId : undefined,
-        courseId: courseId ? courseId : undefined,
+        studentId: studentId ?? undefined,
+        assignmentId: assignmentId ?? undefined,
+        courseId: courseId ?? undefined,
       },
-      { page, limit },
+      query,
       currentUser,
     );
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string, @CurrentUser() currentUser: JwtPayload) {
-    return this.submissionsService.findOne(id, currentUser);
+  async findOne(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: JwtPayload,
+  ) {
+    return singleResponse(
+      await this.submissionsService.findOne(id, currentUser),
+    );
   }
 
-  /** Student updates their own submission (text, file, status). */
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateSubmissionDto: UpdateSubmissionDto,
     @CurrentUser() currentUser: JwtPayload,
   ) {
-    return this.submissionsService.update(id, updateSubmissionDto, currentUser);
+    return singleResponse(
+      await this.submissionsService.update(
+        id,
+        updateSubmissionDto,
+        currentUser,
+      ),
+    );
   }
 
-  /**
-   * PATCH /submissions/:id/grade
-   *
-   * Grade a submission by filling in the criteria checklist.
-   * The `grade` field is computed from `criteriaScores` and stored in one write.
-   * Only accessible by admin or instructor.
-   */
   @Patch(':id/grade')
   @UseGuards(RolesGuard)
   @Roles(UserRole.admin, UserRole.instructor)
-  grade(
+  async grade(
     @Param('id') id: string,
     @Body() gradeSubmissionDto: GradeSubmissionDto,
     @CurrentUser() currentUser: JwtPayload,
   ) {
-    return this.submissionsService.grade(id, gradeSubmissionDto, currentUser);
+    return singleResponse(
+      await this.submissionsService.grade(id, gradeSubmissionDto, currentUser),
+    );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string, @CurrentUser() currentUser: JwtPayload) {
-    return this.submissionsService.remove(id, currentUser);
+  async remove(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: JwtPayload,
+  ) {
+    return singleResponse(
+      await this.submissionsService.remove(id, currentUser),
+    );
   }
 }

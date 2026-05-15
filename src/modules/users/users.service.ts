@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UserRepository } from './users.repository';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ensureFound } from '../../common/utils/ensure-found.util';
 
 @Injectable()
 export class UsersService {
@@ -23,8 +24,9 @@ export class UsersService {
     return this.userRepository.findByRole(role);
   }
 
-  findOne(id: string) {
-    return this.userRepository.findOne(id);
+  async findOne(id: string) {
+    const user = await this.userRepository.findOne(id);
+    return ensureFound(user, `User ${id} not found`);
   }
 
   findByEmail(email: string) {
