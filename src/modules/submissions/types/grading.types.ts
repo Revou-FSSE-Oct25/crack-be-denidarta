@@ -7,9 +7,10 @@ export interface GradingCriteriaItem {
 
 /** Shape of each item inside `AssignmentSubmission.criteriaScores` (Json field). */
 export interface CriteriaScoreItem {
-  /** Zero-based index referencing the position in `Assignment.gradingCriteria`. */
-  criteriaIndex: number;
+  label: string;
+  points: number;
+  description?: string | null;
   checked: boolean;
   pointsAwarded: number;
-  notes?: string;
+  notes?: string | null;
 }

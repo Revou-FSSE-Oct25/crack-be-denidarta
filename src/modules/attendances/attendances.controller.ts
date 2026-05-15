@@ -36,6 +36,13 @@ export class AttendancesController {
     return this.attendancesService.findAll(user);
   }
 
+  /** List all attendance records for a specific class session. */
+  @Get('session/:sessionId')
+  @Roles(UserRole.instructor, UserRole.admin)
+  findBySession(@Param('sessionId') sessionId: string) {
+    return this.attendancesService.findBySession(sessionId);
+  }
+
   /** Get a single attendance record — any authenticated user. */
   @Get(':id')
   findOne(@Param('id') id: string) {

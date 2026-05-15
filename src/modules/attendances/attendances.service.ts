@@ -21,6 +21,10 @@ export class AttendancesService {
     return this.attendanceRepository.findOne(id);
   }
 
+  findBySession(classSessionId: string) {
+    return this.attendanceRepository.findBySession(classSessionId);
+  }
+
   update(id: string, dto: UpdateAttendanceDto) {
     return this.attendanceRepository.update(id, dto);
   }

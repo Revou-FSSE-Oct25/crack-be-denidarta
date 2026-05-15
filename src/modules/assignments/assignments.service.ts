@@ -9,6 +9,23 @@ import {
   paginationParams,
   paginatedResponse,
 } from '../../common/utils/pagination.util';
+import { plainToInstance } from 'class-transformer';
+import { SubmissionStatus } from '@prisma/client';
+import { ResponseAssignmentDto } from './dto/response-assignment.dto';
+
+type SubmissionItem = {
+  id: string;
+  studentId: string;
+  status: SubmissionStatus;
+  submittedAt: Date | null;
+  submissionText: string | null;
+  fileUrl: string | null;
+  grade: unknown;
+  passed: boolean | null;
+  feedback: string | null;
+  gradedAt: Date | null;
+  student: { profile: { fullName: string | null } | null } | null;
+};
 
 @Injectable()
 export class AssignmentsService {
@@ -27,16 +44,115 @@ export class AssignmentsService {
 
   async findAll(query: PaginationQuery, user: JwtPayload) {
     const params = paginationParams(query);
-    const userId = user.role === UserRole.student ? user.sub : undefined;
-    const [data, total] = await this.assignmentRepository.findAll(
+
+    const filterUserId = user.role === UserRole.student ? user.sub : undefined;
+    // For students, only include their own submission.
+    // For instructors/admins, include all submissions.
+    const includeSubmissionForUserId =
+      user.role === UserRole.student ? user.sub : undefined;
+
+    const [assignments, total] = await this.assignmentRepository.findAll(
       params,
-      userId,
+      filterUserId,
+      includeSubmissionForUserId,
     );
-    return paginatedResponse(data, total, params);
+
+    const assignmentsDto = assignments.map((assignment) => {
+      const { course, submissions, ...assignmentData } = assignment;
+
+      const assignmentForDto = {
+        ...assignmentData,
+        courseName: course?.name ?? null,
+        minPoints: assignmentData.minPoints
+          ? Number(assignmentData.minPoints)
+          : 0,
+        createdAt: new Date(assignmentData.createdAt),
+        updatedAt: new Date(assignmentData.updatedAt),
+        dueDate: new Date(assignmentData.dueDate),
+      };
+
+      const responseDto = plainToInstance(
+        ResponseAssignmentDto,
+        assignmentForDto,
+        {
+          excludeExtraneousValues: true,
+        },
+      );
+
+      // Map submissions array
+      responseDto.submissions = (
+        (submissions || []) as unknown as SubmissionItem[]
+      ).map((submission) => ({
+        submissionId: submission.id,
+        userId: submission.studentId,
+        fullName: submission.student?.profile?.fullName ?? null,
+        status: submission.status,
+        dateSubmitted: submission.submittedAt ?? null,
+        submissionText: submission.submissionText ?? null,
+        fileUrl: submission.fileUrl ?? null,
+        grade: submission.grade != null ? Number(submission.grade) : null,
+        passed: submission.passed ?? null,
+        gradedAt: submission.gradedAt ?? null,
+      }));
+
+      return responseDto;
+    });
+
+    return paginatedResponse(assignmentsDto, total, params);
   }
 
-  findOne(id: string) {
-    return this.assignmentRepository.findOne(id);
+  async findOne(id: string, user: JwtPayload) {
+    const includeSubmissionForUserId =
+      user.role === UserRole.student ? user.sub : undefined;
+
+    const assignment = await this.assignmentRepository.findOne(
+      id,
+      includeSubmissionForUserId,
+    );
+
+    if (!assignment) {
+      return null;
+    }
+
+    // Manual transformation similar to findAll
+    const { course, submissions, ...assignmentData } = assignment;
+
+    const assignmentForDto = {
+      ...assignmentData,
+      courseName: course?.name ?? null,
+      minPoints: assignmentData.minPoints
+        ? Number(assignmentData.minPoints)
+        : 0,
+      createdAt: new Date(assignmentData.createdAt),
+      updatedAt: new Date(assignmentData.updatedAt),
+      dueDate: new Date(assignmentData.dueDate),
+    };
+
+    const responseDto = plainToInstance(
+      ResponseAssignmentDto,
+      assignmentForDto,
+      {
+        excludeExtraneousValues: true,
+      },
+    );
+
+    // Map submissions array
+    responseDto.submissions = (
+      (submissions || []) as unknown as SubmissionItem[]
+    ).map((submission) => ({
+      submissionId: submission.id,
+      userId: submission.studentId,
+      fullName: submission.student?.profile?.fullName ?? null,
+      status: submission.status,
+      dateSubmitted: submission.submittedAt ?? null,
+      submissionText: submission.submissionText ?? null,
+      fileUrl: submission.fileUrl ?? null,
+      grade: submission.grade != null ? Number(submission.grade) : null,
+      feedback: submission.feedback ?? null,
+      passed: submission.passed ?? null,
+    }));
+
+    return responseDto;
   }
 
   update(id: string, dto: UpdateAssignmentDto) {

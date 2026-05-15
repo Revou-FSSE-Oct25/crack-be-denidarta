@@ -7,6 +7,7 @@ const mockAssignmentSubmission = {
   findMany: jest.fn(),
   findUnique: jest.fn(),
   update: jest.fn(),
+  count: jest.fn(),
 };
 
 const mockAssignment = {
@@ -17,16 +18,13 @@ const mockPrisma = {
   assignmentSubmission: mockAssignmentSubmission,
   assignment: mockAssignment,
   $transaction: jest.fn(
-    (
-      cb: (tx: {
-        assignmentSubmission: typeof mockAssignmentSubmission;
-        assignment: typeof mockAssignment;
-      }) => Promise<unknown>,
-    ) =>
-      cb({
+    (cbOrArray: unknown[] | ((prisma: Record<string, unknown>) => unknown)) => {
+      if (Array.isArray(cbOrArray)) return Promise.all(cbOrArray);
+      return cbOrArray({
         assignmentSubmission: mockAssignmentSubmission,
         assignment: mockAssignment,
-      }),
+      });
+    },
   ),
 } as unknown as PrismaService;
 
@@ -69,6 +67,7 @@ describe('SubmissionsRepository', () => {
 
       expect(mockAssignmentSubmission.create).toHaveBeenCalledWith({
         data: dto,
+        include: expect.any(Object) as object,
       });
       expect(mockAssignment.update).toHaveBeenCalledWith({
         where: { id: dto.assignmentId },
@@ -79,40 +78,44 @@ describe('SubmissionsRepository', () => {
   });
 
   describe('findAll', () => {
+    const pagination = { skip: 0, take: 10, page: 1, limit: 10 };
+
     it('returns all submissions excluding soft deleted records', async () => {
       const submissions = [mockSubmission, { ...mockSubmission, id: 'uuid-2' }];
       mockAssignmentSubmission.findMany.mockResolvedValue(submissions);
 
-      const result = await repository.findAll();
+      await repository.findAll({}, pagination);
 
-      expect(mockAssignmentSubmission.findMany).toHaveBeenCalledWith({
-        where: { deletedAt: null },
-      });
-      expect(result).toEqual(submissions);
+      expect(mockAssignmentSubmission.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { deletedAt: null } }),
+      );
     });
 
     it('returns submissions filtered by studentId', async () => {
       mockAssignmentSubmission.findMany.mockResolvedValue([mockSubmission]);
 
-      const result = await repository.findAll({ studentId: 'uuid-user-1' });
+      await repository.findAll({ studentId: 'uuid-user-1' }, pagination);
 
-      expect(mockAssignmentSubmission.findMany).toHaveBeenCalledWith({
-        where: { deletedAt: null, studentId: 'uuid-user-1' },
-      });
-      expect(result).toEqual([mockSubmission]);
+      expect(mockAssignmentSubmission.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { deletedAt: null, studentId: 'uuid-user-1' },
+        }),
+      );
     });
 
     it('returns submissions filtered by assignmentId', async () => {
       mockAssignmentSubmission.findMany.mockResolvedValue([mockSubmission]);
 
-      const result = await repository.findAll({
-        assignmentId: 'uuid-assignment-1',
-      });
+      await repository.findAll(
+        { assignmentId: 'uuid-assignment-1' },
+        pagination,
+      );
 
-      expect(mockAssignmentSubmission.findMany).toHaveBeenCalledWith({
-        where: { deletedAt: null, assignmentId: 'uuid-assignment-1' },
-      });
-      expect(result).toEqual([mockSubmission]);
+      expect(mockAssignmentSubmission.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { deletedAt: null, assignmentId: 'uuid-assignment-1' },
+        }),
+      );
     });
   });
 
@@ -124,6 +127,7 @@ describe('SubmissionsRepository', () => {
 
       expect(mockAssignmentSubmission.findUnique).toHaveBeenCalledWith({
         where: { id: 'uuid-1' },
+        include: expect.any(Object) as object,
       });
       expect(result).toEqual(mockSubmission);
     });
@@ -140,6 +144,7 @@ describe('SubmissionsRepository', () => {
       expect(mockAssignmentSubmission.update).toHaveBeenCalledWith({
         where: { id: 'uuid-1' },
         data: dto,
+        include: expect.any(Object) as object,
       });
       expect(result).toEqual(updated);
     });

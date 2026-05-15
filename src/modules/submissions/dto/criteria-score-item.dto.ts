@@ -1,11 +1,4 @@
-import {
-  IsBoolean,
-  IsInt,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Min,
-} from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class CriteriaScoreItemDto {
   /** Zero-based index referencing the position in `Assignment.gradingCriteria`. */
@@ -15,10 +8,6 @@ export class CriteriaScoreItemDto {
 
   @IsBoolean()
   checked: boolean;
-
-  @IsNumber()
-  @Min(0)
-  pointsAwarded: number;
 
   @IsOptional()
   @IsString()

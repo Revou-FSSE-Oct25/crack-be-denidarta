@@ -1,41 +1,66 @@
 import { Injectable } from '@nestjs/common';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { UserRole } from '@prisma/client';
+import { plainToInstance } from 'class-transformer';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { CourseRepository } from './courses.repository';
+import { ResponseCourseDto } from './dto/response-course.dto';
 
 @Injectable()
 export class CoursesService {
   constructor(private readonly courseRepository: CourseRepository) {}
 
-  create(dto: CreateCourseDto) {
-    return this.courseRepository.create(dto);
+  private toResponseDto(data: {
+    instructor?: { id: string; profile: unknown };
+    [key: string]: unknown;
+  }): ResponseCourseDto {
+    const transformed = {
+      ...data,
+      instructor: data.instructor
+        ? {
+            userId: data.instructor.id,
+            profile: data.instructor.profile,
+          }
+        : null,
+    };
+    return plainToInstance(ResponseCourseDto, transformed, {
+      excludeExtraneousValues: true,
+    });
   }
 
-  findAll(
+  async create(dto: CreateCourseDto) {
+    const result = await this.courseRepository.create(dto);
+    return this.toResponseDto(result);
+  }
+
+  async findAll(
     skip: number,
     take: number,
     search: string | undefined,
     currentUser: JwtPayload,
-  ): Promise<[any[], number]> {
-    if (currentUser.role === UserRole.student) {
-      return this.courseRepository.findStudentsCourse(
-        currentUser.sub,
-        skip,
-        take,
-        search,
-      );
-    }
-    return this.courseRepository.findAll(skip, take, search);
+  ): Promise<[ResponseCourseDto[], number]> {
+    const [data, total] =
+      currentUser.role === UserRole.student
+        ? await this.courseRepository.findStudentsCourse(
+            currentUser.sub,
+            skip,
+            take,
+            search,
+          )
+        : await this.courseRepository.findAll(skip, take, search);
+
+    return [data.map((item) => this.toResponseDto(item)), total];
   }
 
-  findOne(id: string) {
-    return this.courseRepository.findOne(id);
+  async findOne(id: string) {
+    const result = await this.courseRepository.findOne(id);
+    return result ? this.toResponseDto(result) : null;
   }
 
-  update(id: string, dto: UpdateCourseDto) {
-    return this.courseRepository.update(id, dto);
+  async update(id: string, dto: UpdateCourseDto) {
+    const result = await this.courseRepository.update(id, dto);
+    return this.toResponseDto(result);
   }
 
   remove(id: string) {

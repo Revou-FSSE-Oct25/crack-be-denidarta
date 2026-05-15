@@ -1,6 +1,7 @@
 import { AssignmentRepository } from './assignments.repository';
 import { PrismaService } from '../../database/prisma.service';
 import { AssignmentStatus } from '@prisma/client';
+import { CreateAssignmentDto } from './dto/create-assignment.dto';
 
 // ── Prisma mock ───────────────────────────────────────────────────────────────
 
@@ -13,18 +14,20 @@ const mockAssignment = {
 };
 
 const mockCourse = { findUniqueOrThrow: jest.fn() };
-const mockProgramEnrollment = { count: jest.fn() };
+const mockProgramEnrollment = { findMany: jest.fn(), count: jest.fn() };
 
 const mockPrisma = {
   assignment: mockAssignment,
   course: mockCourse,
   programEnrollment: mockProgramEnrollment,
-  $transaction: jest.fn((queries: unknown[]) => Promise.all(queries)),
+  $transaction: jest.fn((cb: (tx: typeof mockPrisma) => Promise<unknown>) =>
+    cb(mockPrisma),
+  ),
 } as unknown as PrismaService;
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
-const baseDto = {
+const baseDto: CreateAssignmentDto = {
   courseId: 'uuid-course-1',
   title: 'Midterm Assignment',
   dueDate: '2026-06-01T00:00:00.000Z',
@@ -59,21 +62,30 @@ describe('AssignmentRepository', () => {
   // ── create — toSubmit populated from enrollment count ───────────────────────
 
   describe('create', () => {
-    it('sets toSubmit to the number of enrolled students in the course program', async () => {
+    it('sets toSubmit to the number of enrolled students and creates submissions', async () => {
       mockCourse.findUniqueOrThrow.mockResolvedValue({
         programId: 'uuid-program-1',
       });
-      mockProgramEnrollment.count.mockResolvedValue(5);
+      mockProgramEnrollment.findMany.mockResolvedValue([
+        { userId: 'user-1' },
+        { userId: 'user-2' },
+      ]);
       mockAssignment.create.mockResolvedValue(mockAssignmentRow);
 
       await repository.create(baseDto);
 
-      expect(mockProgramEnrollment.count).toHaveBeenCalledWith({
+      expect(mockProgramEnrollment.findMany).toHaveBeenCalledWith({
         where: { programId: 'uuid-program-1', status: 'enrolled' },
+        select: { userId: true },
       });
       expect(mockAssignment.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({ toSubmit: 5 }) as object,
+          data: expect.objectContaining({
+            toSubmit: 2,
+            submissions: {
+              create: [{ studentId: 'user-1' }, { studentId: 'user-2' }],
+            },
+          }) as object,
         }),
       );
     });
@@ -87,10 +99,13 @@ describe('AssignmentRepository', () => {
 
       await repository.create(baseDto);
 
-      expect(mockProgramEnrollment.count).not.toHaveBeenCalled();
+      expect(mockProgramEnrollment.findMany).not.toHaveBeenCalled();
       expect(mockAssignment.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({ toSubmit: 0 }) as object,
+          data: expect.objectContaining({
+            toSubmit: 0,
+            submissions: { create: [] },
+          }) as object,
         }),
       );
     });
@@ -99,7 +114,11 @@ describe('AssignmentRepository', () => {
       mockCourse.findUniqueOrThrow.mockResolvedValue({
         programId: 'uuid-program-1',
       });
-      mockProgramEnrollment.count.mockResolvedValue(3);
+      mockProgramEnrollment.findMany.mockResolvedValue([
+        { userId: 'u1' },
+        { userId: 'u2' },
+        { userId: 'u3' },
+      ]);
       mockAssignment.create.mockResolvedValue({
         ...mockAssignmentRow,
         toSubmit: 3,
@@ -122,6 +141,11 @@ describe('AssignmentRepository', () => {
 
       expect(mockAssignment.findUnique).toHaveBeenCalledWith({
         where: { id: 'uuid-assignment-1' },
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        include: expect.objectContaining({
+          course: expect.any(Object) as object,
+          submissions: expect.any(Object) as object,
+        }),
       });
       expect(result).toEqual(mockAssignmentRow);
     });
@@ -139,7 +163,7 @@ describe('AssignmentRepository', () => {
 
       expect(mockAssignment.update).toHaveBeenCalledWith({
         where: { id: 'uuid-assignment-1' },
-        data: dto,
+        data: { title: 'Updated Title' },
       });
       expect(result.title).toBe('Updated Title');
     });

@@ -3,6 +3,7 @@ import { UserRole } from '@prisma/client';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { AssignmentsService } from './assignments.service';
 import { AssignmentRepository } from './assignments.repository';
+import { CreateAssignmentDto } from './dto/create-assignment.dto';
 
 // ── Repository mock ───────────────────────────────────────────────────────────
 
@@ -40,7 +41,7 @@ const studentUser: JwtPayload = {
   email: 'student@test.com',
 };
 
-const baseDto = {
+const baseDto: CreateAssignmentDto = {
   courseId: 'uuid-course-1',
   title: 'Midterm Assignment',
   dueDate: '2026-06-01T00:00:00.000Z',
@@ -107,14 +108,21 @@ describe('AssignmentsService', () => {
 
   describe('findOne', () => {
     it('returns the assignment including submitted and toSubmit counters', async () => {
-      const assignment = { ...mockAssignment, submitted: 3, toSubmit: 5 };
+      const assignment = {
+        ...mockAssignment,
+        submitted: 3,
+        toSubmit: 5,
+        course: { name: 'Test Course' },
+        submissions: [],
+        minPoints: null,
+      };
       mockFindOne.mockResolvedValue(assignment);
 
-      const result = await service.findOne('uuid-assignment-1');
+      const result = await service.findOne('uuid-assignment-1', instructorUser);
 
-      expect(mockFindOne).toHaveBeenCalledWith('uuid-assignment-1');
-      expect(result.submitted).toBe(3);
-      expect(result.toSubmit).toBe(5);
+      expect(mockFindOne).toHaveBeenCalledWith('uuid-assignment-1', undefined);
+      expect(result!.submitted).toBe(3);
+      expect(result!.toSubmit).toBe(5);
     });
   });
 

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CoursesController } from './courses.controller';
 import { CoursesService } from './courses.service';
+import { PrismaService } from '../../database/prisma.service';
 
 const mockCoursesService = {
   create: jest.fn(),
@@ -10,13 +11,18 @@ const mockCoursesService = {
   remove: jest.fn(),
 };
 
+const mockPrismaService = {};
+
 describe('CoursesController', () => {
   afterEach(() => jest.clearAllMocks());
 
   it('should be defined', async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CoursesController],
-      providers: [{ provide: CoursesService, useValue: mockCoursesService }],
+      providers: [
+        { provide: CoursesService, useValue: mockCoursesService },
+        { provide: PrismaService, useValue: mockPrismaService },
+      ],
     }).compile();
 
     const controller: unknown = module.get(CoursesController);

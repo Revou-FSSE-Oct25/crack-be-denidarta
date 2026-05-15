@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma, UserRole, UserStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -47,10 +48,14 @@ export class UserRepository {
   }) {
     const { skip, take, role, roles, status, search } = options;
 
-    const where: any = {
+    const where: Prisma.UserWhereInput = {
       deletedAt: null,
-      ...(status && { status }),
-      ...(roles?.length ? { role: { in: roles } } : role ? { role } : {}),
+      ...(status && { status: status as UserStatus }),
+      ...(roles?.length
+        ? { role: { in: roles as UserRole[] } }
+        : role
+          ? { role: role as UserRole }
+          : {}),
       ...(search && {
         OR: [
           { username: { contains: search, mode: 'insensitive' } },

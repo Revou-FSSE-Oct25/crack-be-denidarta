@@ -176,7 +176,7 @@ describe('UserRepository', () => {
         data: {
           inviteToken: token,
           inviteTokenExpiresAt: expiresAt,
-          status: 'INVITED',
+          status: 'invited',
         },
       });
     });
@@ -192,8 +192,8 @@ describe('UserRepository', () => {
       expect(mockPrisma.user.update).toHaveBeenCalledWith({
         where: { id: '1' },
         data: {
-          password: hash,
-          status: 'ACTIVE',
+          passwordHash: hash,
+          status: 'active',
           inviteToken: null,
           inviteTokenExpiresAt: null,
         },

@@ -34,22 +34,31 @@ describe('UsersController', () => {
   describe('findAll', () => {
     it('returns paginated users when no role filter is provided', async () => {
       const users = createMockUserList(3);
-      mockUsersService.findAllPaginated.mockResolvedValue([users, 3]);
+      mockUsersService.findAllPaginated.mockResolvedValue({
+        items: users,
+        total: 3,
+      });
 
-      const result = await controller.findAll();
+      const result = await controller.findAll({});
 
       expect(mockUsersService.findAllPaginated).toHaveBeenCalled();
-      expect(result).toMatchObject({ data: users, total: 3 });
+      expect(result.items).toHaveLength(3);
+      expect(result.meta.total).toBe(3);
     });
 
     it('returns users filtered by role', async () => {
       const students = createMockUserList(5, { role: UserRole.student });
-      mockUsersService.findByRole.mockResolvedValue(students);
+      mockUsersService.findAllPaginated.mockResolvedValue({
+        items: students,
+        total: 5,
+      });
 
-      const result = await controller.findAll('student');
+      const result = await controller.findAll({ role: 'student' });
 
-      expect(mockUsersService.findByRole).toHaveBeenCalledWith('student');
-      expect(result).toEqual(students);
+      expect(mockUsersService.findAllPaginated).toHaveBeenCalledWith(
+        expect.objectContaining({ role: 'student' }),
+      );
+      expect(result.items).toHaveLength(5);
     });
   });
 

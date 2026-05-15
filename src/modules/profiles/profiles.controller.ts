@@ -64,6 +64,14 @@ export class ProfilesController {
 
   // ---- Update ----
 
+  @Patch('me')
+  upsertMyProfile(
+    @CurrentUser() user: JwtPayload,
+    @Body() updateProfileDto: UpdateProfileDto,
+  ) {
+    return this.profilesService.upsertByUserId(user.sub, updateProfileDto);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateProfileDto: UpdateProfileDto) {
     return this.profilesService.update(id, updateProfileDto);

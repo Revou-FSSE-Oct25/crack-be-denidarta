@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { UsersService } from '../modules/users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from '../database/prisma.service';
 import * as bcrypt from 'bcrypt';
 
 const mockUsersService = {
@@ -17,6 +18,10 @@ const mockJwtService = {
   verifyAsync: jest.fn(),
 };
 
+const mockPrismaService = {
+  tokenPurge: { upsert: jest.fn() },
+};
+
 describe('AuthService', () => {
   let service: AuthService;
 
@@ -26,6 +31,7 @@ describe('AuthService', () => {
         AuthService,
         { provide: UsersService, useValue: mockUsersService },
         { provide: JwtService, useValue: mockJwtService },
+        { provide: PrismaService, useValue: mockPrismaService },
       ],
     }).compile();
 
@@ -39,9 +45,9 @@ describe('AuthService', () => {
       const user = {
         id: 1,
         email: 'test@example.com',
-        password: await bcrypt.hash('password123', 10),
-        role: 'STUDENT',
-        status: 'ACTIVE',
+        passwordHash: await bcrypt.hash('password123', 10),
+        role: 'student',
+        status: 'active',
       };
       mockUsersService.findByEmail.mockResolvedValue(user);
 
@@ -53,10 +59,10 @@ describe('AuthService', () => {
       expect(result).toEqual({
         id: 1,
         email: 'test@example.com',
-        role: 'STUDENT',
-        status: 'ACTIVE',
+        role: 'student',
+        status: 'active',
       });
-      expect(result).not.toHaveProperty('password');
+      expect(result).not.toHaveProperty('passwordHash');
     });
 
     it('returns null when user not found', async () => {
@@ -74,9 +80,9 @@ describe('AuthService', () => {
       const user = {
         id: 1,
         email: 'test@example.com',
-        password: await bcrypt.hash('correctpassword', 10),
-        role: 'STUDENT',
-        status: 'ACTIVE',
+        passwordHash: await bcrypt.hash('correctpassword', 10),
+        role: 'student',
+        status: 'active',
       };
       mockUsersService.findByEmail.mockResolvedValue(user);
 
@@ -88,13 +94,13 @@ describe('AuthService', () => {
       expect(result).toBeNull();
     });
 
-    it('returns null when user is not ACTIVE', async () => {
+    it('returns null when user is not active', async () => {
       const user = {
         id: 1,
         email: 'test@example.com',
-        password: await bcrypt.hash('password123', 10),
-        role: 'STUDENT',
-        status: 'INVITED',
+        passwordHash: await bcrypt.hash('password123', 10),
+        role: 'student',
+        status: 'invited',
       };
       mockUsersService.findByEmail.mockResolvedValue(user);
 

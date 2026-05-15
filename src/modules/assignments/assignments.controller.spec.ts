@@ -3,6 +3,7 @@ import { UserRole } from '@prisma/client';
 import { AssignmentsController } from './assignments.controller';
 import { AssignmentsService } from './assignments.service';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
+import { CreateAssignmentDto } from './dto/create-assignment.dto';
 
 // ── Service mock ──────────────────────────────────────────────────────────────
 
@@ -28,7 +29,7 @@ const instructorUser: JwtPayload = {
   email: 'instructor@test.com',
 };
 
-const baseDto = {
+const baseDto: CreateAssignmentDto = {
   courseId: 'uuid-course-1',
   title: 'Midterm Assignment',
   dueDate: '2026-06-01T00:00:00.000Z',
@@ -88,11 +89,17 @@ describe('AssignmentsController', () => {
       const assignment = { ...mockAssignment, submitted: 3, toSubmit: 5 };
       mockFindOne.mockResolvedValue(assignment);
 
-      const result = await controller.findOne('uuid-assignment-1');
+      const result = await controller.findOne(
+        'uuid-assignment-1',
+        instructorUser,
+      );
 
-      expect(mockFindOne).toHaveBeenCalledWith('uuid-assignment-1');
-      expect(result.submitted).toBe(3);
-      expect(result.toSubmit).toBe(5);
+      expect(mockFindOne).toHaveBeenCalledWith(
+        'uuid-assignment-1',
+        instructorUser,
+      );
+      expect(result!.submitted).toBe(3);
+      expect(result!.toSubmit).toBe(5);
     });
   });
 

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateProgramDto } from './dto/create-program.dto';
 import { UpdateProgramDto } from './dto/update-program.dto';
@@ -31,6 +32,12 @@ const programSelect = {
       status: true,
       startedAt: true,
       endedAt: true,
+      instructor: {
+        select: {
+          id: true,
+          profile: { select: { fullName: true } },
+        },
+      },
     },
   },
   programs: {
@@ -40,6 +47,10 @@ const programSelect = {
     },
   },
 } as const;
+
+export type ProgramResult = Prisma.ProgramGetPayload<{
+  select: typeof programSelect;
+}>;
 
 @Injectable()
 export class ProgramRepository {

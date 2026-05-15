@@ -29,6 +29,8 @@ describe('SubmissionsController', () => {
   describe('create', () => {});
 
   describe('findAll', () => {
+    const mockUser = { sub: 'user-1', role: 'admin' };
+
     it('returns all submissions when no filter is provided', async () => {
       const submissions = [
         { id: 1, studentId: 1, assignmentId: 1, courseId: 1 },
@@ -36,13 +38,17 @@ describe('SubmissionsController', () => {
       ];
       mockSubmissionsService.findAll.mockResolvedValue(submissions);
 
-      const result = await controller.findAll();
+      const result = await controller.findAll(mockUser as any);
 
-      expect(mockSubmissionsService.findAll).toHaveBeenCalledWith({
-        studentId: undefined,
-        assignmentId: undefined,
-        courseId: undefined,
-      });
+      expect(mockSubmissionsService.findAll).toHaveBeenCalledWith(
+        {
+          studentId: undefined,
+          assignmentId: undefined,
+          courseId: undefined,
+        },
+        { page: undefined, limit: undefined },
+        mockUser,
+      );
       expect(result).toEqual(submissions);
     });
 
@@ -54,13 +60,17 @@ describe('SubmissionsController', () => {
       ];
       mockSubmissionsService.findAll.mockResolvedValue(submissions);
 
-      const result = await controller.findAll('3');
+      const result = await controller.findAll(mockUser as any, '3');
 
-      expect(mockSubmissionsService.findAll).toHaveBeenCalledWith({
-        studentId: '3',
-        assignmentId: undefined,
-        courseId: undefined,
-      });
+      expect(mockSubmissionsService.findAll).toHaveBeenCalledWith(
+        {
+          studentId: '3',
+          assignmentId: undefined,
+          courseId: undefined,
+        },
+        { page: undefined, limit: undefined },
+        mockUser,
+      );
       expect(result).toHaveLength(3);
       expect(result).toEqual(submissions);
     });
@@ -71,13 +81,17 @@ describe('SubmissionsController', () => {
       ];
       mockSubmissionsService.findAll.mockResolvedValue(submissions);
 
-      const result = await controller.findAll(undefined, '5');
+      const result = await controller.findAll(mockUser as any, undefined, '5');
 
-      expect(mockSubmissionsService.findAll).toHaveBeenCalledWith({
-        studentId: undefined,
-        assignmentId: '5',
-        courseId: undefined,
-      });
+      expect(mockSubmissionsService.findAll).toHaveBeenCalledWith(
+        {
+          studentId: undefined,
+          assignmentId: '5',
+          courseId: undefined,
+        },
+        { page: undefined, limit: undefined },
+        mockUser,
+      );
       expect(result).toEqual(submissions);
     });
 
@@ -87,13 +101,22 @@ describe('SubmissionsController', () => {
       ];
       mockSubmissionsService.findAll.mockResolvedValue(submissions);
 
-      const result = await controller.findAll(undefined, undefined, '2');
+      const result = await controller.findAll(
+        mockUser as any,
+        undefined,
+        undefined,
+        '2',
+      );
 
-      expect(mockSubmissionsService.findAll).toHaveBeenCalledWith({
-        studentId: undefined,
-        assignmentId: undefined,
-        courseId: '2',
-      });
+      expect(mockSubmissionsService.findAll).toHaveBeenCalledWith(
+        {
+          studentId: undefined,
+          assignmentId: undefined,
+          courseId: '2',
+        },
+        { page: undefined, limit: undefined },
+        mockUser,
+      );
       expect(result).toEqual(submissions);
     });
   });

@@ -43,7 +43,4 @@ export class CreateAssignmentDto {
   @ValidateNested({ each: true })
   @Type(() => GradingCriteriaItemDto)
   gradingCriteria?: GradingCriteriaItemDto[];
-
-  submitted: number;
-  toSubmit: number;
 }

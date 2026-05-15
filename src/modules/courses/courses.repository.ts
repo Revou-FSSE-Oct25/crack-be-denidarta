@@ -8,8 +8,21 @@ import { UpdateCourseDto } from './dto/update-course.dto';
 export class CourseRepository {
   constructor(private prisma: PrismaService) {}
 
+  private readonly courseInclude = {
+    instructor: {
+      select: {
+        id: true,
+        profile: { select: { fullName: true } },
+      },
+    },
+    program: { select: { name: true } },
+  };
+
   create(dto: CreateCourseDto) {
-    return this.prisma.course.create({ data: dto });
+    return this.prisma.course.create({
+      data: dto,
+      include: this.courseInclude,
+    });
   }
 
   async findAll(
@@ -32,10 +45,7 @@ export class CourseRepository {
         where,
         skip,
         take,
-        include: {
-          instructor: { include: { profile: true } },
-          program: { select: { name: true } },
-        },
+        include: this.courseInclude,
       }),
       this.prisma.course.count({ where }),
     ]);
@@ -72,10 +82,7 @@ export class CourseRepository {
         where,
         skip,
         take,
-        include: {
-          instructor: { include: { profile: true } },
-          program: { select: { name: true } },
-        },
+        include: this.courseInclude,
       }),
       this.prisma.course.count({ where }),
     ]);
@@ -86,18 +93,23 @@ export class CourseRepository {
   findInstructorCourses(id: string) {
     return this.prisma.course.findMany({
       where: { instructorId: id, deletedAt: null },
-      include: {
-        instructor: { include: { profile: true } },
-      },
+      include: this.courseInclude,
     });
   }
 
   findOne(id: string) {
-    return this.prisma.course.findUnique({ where: { id } });
+    return this.prisma.course.findUnique({
+      where: { id },
+      include: this.courseInclude,
+    });
   }
 
   update(id: string, dto: UpdateCourseDto) {
-    return this.prisma.course.update({ where: { id }, data: dto });
+    return this.prisma.course.update({
+      where: { id },
+      data: dto,
+      include: this.courseInclude,
+    });
   }
 
   remove(id: string) {

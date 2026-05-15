@@ -83,9 +83,9 @@ async function seedProfiles() {
         country: 'Indonesia',
         avatarUrl: faker.image.avatar(),
         shortBio: faker.lorem.sentence(),
-        linkedin: `https://linkedin.com/in/${faker.internet.username().toLowerCase()}`,
+        linkedinUrl: `https://linkedin.com/in/${faker.internet.username().toLowerCase()}`,
         instagram: faker.internet.username().toLowerCase(),
-        github: faker.internet.username().toLowerCase(),
+        githubUrl: faker.internet.username().toLowerCase(),
         personalWebsite: faker.helpers.maybe(() => faker.internet.url(), {
           probability: 0.4,
         }),
@@ -887,13 +887,12 @@ async function seedAssignmentSubmissions() {
 
     for (const student of submitters) {
       const status = faker.helpers.weightedArrayElement([
-        { value: 'submitted' as const, weight: 3 },
+        { value: 'submitted' as const, weight: 4 },
         { value: 'graded' as const, weight: 4 },
-        { value: 'returned' as const, weight: 2 },
-        { value: 'draft' as const, weight: 1 },
+        { value: 'notSubmitted' as const, weight: 2 },
       ]);
 
-      const isGraded = status === 'graded' || status === 'returned';
+      const isGraded = status === 'graded';
       const grade = isGraded
         ? parseFloat(
             faker.number
@@ -915,7 +914,7 @@ async function seedAssignmentSubmissions() {
           studentId: student.id,
           submissionText: faker.lorem.paragraph(),
           submittedAt:
-            status !== 'draft' ? faker.date.recent({ days: 30 }) : null,
+            status !== 'notSubmitted' ? faker.date.recent({ days: 30 }) : null,
           grade,
           passed: isGraded ? grade !== null && grade >= 60 : null,
           feedback: isGraded ? faker.lorem.sentence() : null,

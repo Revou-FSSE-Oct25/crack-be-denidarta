@@ -3,7 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { AttendanceStatus, EnrollmentStatus, UserRole } from '@prisma/client';
+import {
+  AttendanceStatus,
+  EnrollmentStatus,
+  Prisma,
+  UserRole,
+} from '@prisma/client';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
@@ -49,6 +54,33 @@ export class AttendanceRepository {
 
   findOne(id: string) {
     return this.prisma.classAttendance.findUnique({ where: { id } });
+  }
+
+  findBySession(classSessionId: string): Promise<
+    Prisma.ClassAttendanceGetPayload<{
+      include: {
+        user: {
+          select: {
+            id: true;
+            username: true;
+            profile: { select: { fullName: true } };
+          };
+        };
+      };
+    }>[]
+  > {
+    return this.prisma.classAttendance.findMany({
+      where: { classSessionId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            profile: { select: { fullName: true } },
+          },
+        },
+      },
+    });
   }
 
   update(id: string, dto: UpdateAttendanceDto) {

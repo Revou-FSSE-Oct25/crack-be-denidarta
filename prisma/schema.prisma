@@ -91,10 +91,9 @@ enum AssignmentStatus {
 }
 
 enum SubmissionStatus {
-  draft
+  notSubmitted
   submitted
   graded
-  returned
 }
 
 // ─── AUTH & IDENTITY ───────────────────────────────────────────────
@@ -139,21 +138,29 @@ model Profile {
   userId String @unique @map("user_id")
   user   User   @relation(fields: [userId], references: [id])
 
-  fullName        String? @map("full_name") @db.VarChar(255)
-  phoneNumber     String? @map("phone_number") @db.VarChar(20)
-  gender          Gender?
-  fullAddress     String? @map("full_address")
-  city            String? @db.VarChar(100)
-  province        String? @db.VarChar(100)
-  district        String? @db.VarChar(100)
-  subdistrict     String? @db.VarChar(100)
-  country         String? @default("Indonesia") @db.VarChar(100)
-  avatarUrl       String? @map("avatar_url")
-  linkedin        String?
-  instagram       String? @db.VarChar(255)
-  github          String? @db.VarChar(255)
-  personalWebsite String? @map("personal_website")
-  shortBio        String? @map("short_bio")
+  fullName          String?         @map("full_name") @db.VarChar(255)
+  phoneNumber       String?         @map("phone_number") @db.VarChar(20)
+  dateOfBirth       DateTime?       @map("date_of_birth") @db.Date
+  gender            Gender?
+  streetAddress     String?         @map("street_address")
+  fullAddress       String?         @map("full_address")
+  city              String?         @db.VarChar(100)
+  province          String?         @db.VarChar(100)
+  district          String?         @db.VarChar(100)
+  subdistrict       String?         @db.VarChar(100)
+  postalCode        String?         @map("postal_code") @db.VarChar(20)
+  country           String?         @default("Indonesia") @db.VarChar(100)
+  timezone          String?         @db.VarChar(100)
+  avatarUrl         String?         @map("avatar_url")
+  linkedinUrl       String?         @map("linkedin")
+  instagram         String?         @db.VarChar(255)
+  githubUrl         String?         @map("github") @db.VarChar(255)
+  personalWebsite   String?         @map("personal_website")
+  shortBio          String?         @map("short_bio")
+  currentOccupation String?         @map("current_occupation") @db.VarChar(255)
+  company           String?         @db.VarChar(255)
+  highestEducation  EducationLevel? @map("highest_education")
+  fieldOfStudy      String?         @map("field_of_study") @db.VarChar(255)
 
   @@map("profiles")
 }
@@ -438,15 +445,15 @@ model AssignmentSubmission {
   grade          Decimal?         @db.Decimal(5, 2)
   passed         Boolean?
   feedback       String?
-  status         SubmissionStatus @default(draft)
+  status         SubmissionStatus @default(notSubmitted)
 
-  // Checklist result per grading criteria, filled once during grading.
-  // Grade is then computed from this and stored in `grade` above — no re-query needed.
+  // Snapshot of the assignment's gradingCriteria populated at submission creation.
+  // Re-generated (checked reset to false) whenever the assignment's gradingCriteria is patched.
+  // checked=true awards full points for that criterion; grade = sum of pointsAwarded.
   // Structure: Array of CriteriaScore
   // [
-  //   { "criteriaId": "uuid", "checked": true,  "pointsAwarded": 40, "notes": "..." },
-  //   { "criteriaId": "uuid", "checked": false, "pointsAwarded": 0,  "notes": "..." },
-  //   { "criteriaId": "uuid", "checked": true,  "pointsAwarded": 30, "notes": "..." }
+  //   { "label": "Code Quality",  "points": 40, "description": "...", "checked": true,  "pointsAwarded": 40, "notes": "..." },
+  //   { "label": "Documentation", "points": 30, "description": "...", "checked": false, "pointsAwarded": 0,  "notes": null  }
   // ]
   criteriaScores Json? @map("criteria_scores")
 
