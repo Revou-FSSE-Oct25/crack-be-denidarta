@@ -63,6 +63,8 @@ export class UsersService {
     search?: string;
     roles?: string[];
     status?: string;
+    sortBy?: 'fullName' | 'createdAt' | 'email';
+    sortOrder?: 'asc' | 'desc';
   }) {
     return this.userRepository.findAllPaginated(options);
   }

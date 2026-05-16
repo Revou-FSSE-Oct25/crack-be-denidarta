@@ -40,7 +40,16 @@ export class UsersController {
 
   @Get()
   async findAll(@Query() query: FindAllUsersDto) {
-    const { role, roles: rolesParam, page, limit, search, status } = query;
+    const {
+      role,
+      roles: rolesParam,
+      page,
+      limit,
+      search,
+      status,
+      sortBy,
+      sortOrder,
+    } = query;
     const params = paginationParams({ page, limit });
     const roles = rolesParam
       ? rolesParam
@@ -56,6 +65,8 @@ export class UsersController {
       search,
       roles,
       status,
+      sortBy,
+      sortOrder,
     });
 
     const items = data.map((user) => new UserEntity(user));

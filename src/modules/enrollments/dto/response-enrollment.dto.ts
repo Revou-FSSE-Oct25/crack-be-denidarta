@@ -8,6 +8,33 @@ class EnrolledUserDto {
 class EnrolledProgramDto {
   @Expose() id: string;
   @Expose() name: string;
+  @Expose()
+  @Type(() => HeadOfProgramDto)
+  headOfProgram: HeadOfProgramDto | null;
+  @Expose()
+  @Type(() => CourseSummaryDto)
+  courses: CourseSummaryDto[];
+}
+
+class CourseSummaryDto {
+  @Expose() courseId: string;
+  @Expose() courseTitle: string;
+  @Expose() startedAt: Date | null;
+  @Expose() endedAt: Date | null;
+  @Expose() status: string;
+  @Expose()
+  @Type(() => EnrolledInstructorDto)
+  instructor: EnrolledInstructorDto | null;
+}
+
+class EnrolledInstructorDto {
+  @Expose() userId: string;
+  @Expose() fullName: string | null;
+}
+
+class HeadOfProgramDto {
+  @Expose() userId: string;
+  @Expose() fullName: string | null;
 }
 
 export class ResponseEnrollmentDto {
@@ -15,7 +42,7 @@ export class ResponseEnrollmentDto {
   @Expose() userId: string;
   @Expose() programId: string;
   @Expose() status: string;
-  @Expose() enrolledAt: Date;
+  @Expose() createdAt: Date;
   @Expose() @Type(() => EnrolledUserDto) user: EnrolledUserDto | null;
   @Expose() @Type(() => EnrolledProgramDto) program: EnrolledProgramDto | null;
 }

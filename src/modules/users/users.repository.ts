@@ -45,8 +45,11 @@ export class UserRepository {
     roles?: string[];
     status?: string;
     search?: string;
+    sortBy?: 'fullName' | 'createdAt' | 'email';
+    sortOrder?: 'asc' | 'desc';
   }) {
-    const { skip, take, role, roles, status, search } = options;
+    const { skip, take, role, roles, status, search, sortBy, sortOrder } =
+      options;
 
     const where: Prisma.UserWhereInput = {
       deletedAt: null,
@@ -69,12 +72,19 @@ export class UserRepository {
       }),
     };
 
+    const orderBy: Prisma.UserOrderByWithRelationInput =
+      sortBy === 'fullName'
+        ? { profile: { fullName: sortOrder || 'asc' } }
+        : sortBy === 'email'
+          ? { email: sortOrder || 'asc' }
+          : { createdAt: sortOrder || 'desc' };
+
     const [items, total] = await Promise.all([
       this.prisma.user.findMany({
         where,
         skip,
         take,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         include: {
           profile: {
             select: { fullName: true },

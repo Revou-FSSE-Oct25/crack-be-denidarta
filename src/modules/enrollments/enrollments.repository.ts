@@ -10,7 +10,10 @@ export class EnrollmentRepository {
   create(dto: CreateEnrollmentDto) {
     return this.prisma.programEnrollment.create({
       data: dto,
-      include: { user: true, program: true },
+      include: {
+        user: { include: { profile: true } },
+        program: { include: { headOfProgram: { include: { profile: true } } } },
+      },
     });
   }
 
@@ -20,7 +23,10 @@ export class EnrollmentRepository {
         skip,
         take,
         orderBy: { createdAt: 'desc' },
-        include: { user: true, program: true },
+        include: {
+          user: { include: { profile: true } },
+          program: { include: { headOfProgram: { include: { profile: true } } } },
+        },
       }),
       this.prisma.programEnrollment.count(),
     ]);
@@ -29,7 +35,10 @@ export class EnrollmentRepository {
   findOne(id: string) {
     return this.prisma.programEnrollment.findUnique({
       where: { id },
-      include: { user: true, program: true },
+      include: {
+        user: { include: { profile: true } },
+        program: { include: { headOfProgram: { include: { profile: true } } } },
+      },
     });
   }
 
@@ -37,7 +46,10 @@ export class EnrollmentRepository {
     return this.prisma.programEnrollment.update({
       where: { id },
       data: dto,
-      include: { user: true, program: true },
+      include: {
+        user: { include: { profile: true } },
+        program: { include: { headOfProgram: { include: { profile: true } } } },
+      },
     });
   }
 
@@ -49,8 +61,15 @@ export class EnrollmentRepository {
     return this.prisma.programEnrollment.findMany({
       where: { userId },
       include: {
-        user: true,
-        program: { include: { courses: true } },
+        user: { include: { profile: true } },
+        program: {
+          include: {
+            headOfProgram: { include: { profile: true } },
+            courses: {
+              include: { instructor: { include: { profile: true } } },
+            },
+          },
+        },
       },
     });
   }

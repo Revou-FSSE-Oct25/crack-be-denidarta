@@ -29,4 +29,12 @@ export class FindAllUsersDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @IsOptional()
+  @IsString()
+  sortBy?: 'fullName' | 'createdAt' | 'email';
+
+  @IsOptional()
+  @IsString()
+  sortOrder?: 'asc' | 'desc';
 }

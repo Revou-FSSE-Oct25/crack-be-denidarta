@@ -16,10 +16,49 @@ import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 export class EnrollmentsService {
   constructor(private readonly enrollmentRepository: EnrollmentRepository) {}
 
-  private toDto(data: Record<string, unknown>): ResponseEnrollmentDto {
-    return plainToInstance(ResponseEnrollmentDto, data, {
-      excludeExtraneousValues: true,
-    });
+  private toDto(data: any): ResponseEnrollmentDto {
+    return plainToInstance(
+      ResponseEnrollmentDto,
+      {
+        id: data.id,
+        userId: data.userId,
+        programId: data.programId,
+        status: data.status,
+        createdAt: data.createdAt,
+        user: data.user
+          ? {
+              id: data.user.id,
+              username: data.user.username,
+            }
+          : null,
+        program: data.program
+          ? {
+              id: data.program.id,
+              name: data.program.name,
+              headOfProgram: data.program.headOfProgram
+                ? {
+                    userId: data.program.headOfProgram.id,
+                    fullName: data.program.headOfProgram.profile?.fullName ?? null,
+                  }
+                : null,
+              courses: (data.program.courses ?? []).map((course: any) => ({
+                courseId: course.id,
+                courseTitle: course.name,
+                startedAt: course.startedAt,
+                endedAt: course.endedAt,
+                status: course.status,
+                instructor: course.instructor
+                  ? {
+                      userId: course.instructor.id,
+                      fullName: course.instructor.profile?.fullName ?? null,
+                    }
+                  : null,
+              })),
+            }
+          : null,
+      },
+      { excludeExtraneousValues: true },
+    );
   }
 
   async create(dto: CreateEnrollmentDto): Promise<ResponseEnrollmentDto> {
