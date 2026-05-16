@@ -4,9 +4,14 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ensureFound } from '../../common/utils/ensure-found.util';
 
+import { PrismaService } from '../../database/prisma.service';
+
 @Injectable()
 export class UsersService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly prisma: PrismaService,
+  ) {}
 
   // ---- Create ----
 
@@ -27,6 +32,20 @@ export class UsersService {
   async findOne(id: string) {
     const user = await this.userRepository.findOne(id);
     return ensureFound(user, `User ${id} not found`);
+  }
+
+  async findMe(userId: string) {
+    return this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        role: true,
+        status: true,
+        studentProfile: true,
+      },
+    });
   }
 
   findByEmail(email: string) {

@@ -20,6 +20,8 @@ import {
   paginatedResponse,
   singleResponse,
 } from '../../common/utils/pagination.util';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 
 @Controller('users')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -58,6 +60,12 @@ export class UsersController {
 
     const items = data.map((user) => new UserEntity(user));
     return paginatedResponse(items, total, params);
+  }
+
+  @Get('me')
+  async getMe(@CurrentUser() user: JwtPayload) {
+    const result = await this.usersService.findMe(user.sub);
+    return singleResponse(result);
   }
 
   @Get(':id')
