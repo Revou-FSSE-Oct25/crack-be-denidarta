@@ -25,7 +25,9 @@ export class EnrollmentRepository {
         orderBy: { createdAt: 'desc' },
         include: {
           user: { include: { profile: true } },
-          program: { include: { headOfProgram: { include: { profile: true } } } },
+          program: {
+            include: { headOfProgram: { include: { profile: true } } },
+          },
         },
       }),
       this.prisma.programEnrollment.count(),

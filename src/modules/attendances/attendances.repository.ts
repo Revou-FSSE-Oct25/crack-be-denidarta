@@ -48,27 +48,36 @@ export class AttendanceRepository {
     user: JwtPayload,
     skip: number,
     take: number,
+    studentId?: string,
   ): Promise<
-    [Prisma.ClassAttendanceGetPayload<{ include: { user: true } }>[], number]
+    [
+      Prisma.ClassAttendanceGetPayload<{
+        include: { user: true; classSession: true };
+      }>[],
+      number,
+    ]
   > {
-    const where: Prisma.ClassAttendanceWhereInput =
-      user.role === UserRole.student
-        ? {
-            userId: user.sub,
-            classSession: {
-              course: {
-                program: {
-                  programs: {
-                    some: {
-                      userId: user.sub,
-                      status: EnrollmentStatus.enrolled,
-                    },
-                  },
+    let where: Prisma.ClassAttendanceWhereInput = {};
+
+    if (user.role === UserRole.student) {
+      where = {
+        userId: user.sub,
+        classSession: {
+          course: {
+            program: {
+              programs: {
+                some: {
+                  userId: user.sub,
+                  status: EnrollmentStatus.enrolled,
                 },
               },
             },
-          }
-        : {};
+          },
+        },
+      };
+    } else if (studentId) {
+      where = { userId: studentId };
+    }
 
     return Promise.all([
       this.prisma.classAttendance.findMany({
@@ -76,7 +85,7 @@ export class AttendanceRepository {
         skip,
         take,
         orderBy: { createdAt: 'desc' },
-        include: { user: true },
+        include: { user: true, classSession: true },
       }),
       this.prisma.classAttendance.count({ where }),
     ]);

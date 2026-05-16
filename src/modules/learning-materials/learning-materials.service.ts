@@ -50,12 +50,7 @@ export class LearningMaterialsService {
 
   async findOne(id: string): Promise<ResponseLearningMaterialDto> {
     const result = await this.learningMaterialRepository.findOne(id);
-    return this.toDto(
-      ensureFound(
-        result,
-        `Learning material ${id} not found`,
-      ) as unknown as Record<string, unknown>,
-    );
+    return this.toDto(ensureFound(result, `Learning material ${id} not found`));
   }
 
   async update(

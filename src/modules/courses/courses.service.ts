@@ -13,15 +13,15 @@ import {
   PaginatedResponse,
 } from '../../common/utils/pagination.util';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
+import { CourseWithInstructorAndProgram } from './types/course-with-relations.type';
 
 @Injectable()
 export class CoursesService {
   constructor(private readonly courseRepository: CourseRepository) {}
 
-  private toResponseDto(data: {
-    instructor?: { id: string; profile: unknown };
-    [key: string]: unknown;
-  }): ResponseCourseDto {
+  private toResponseDto(
+    data: CourseWithInstructorAndProgram,
+  ): ResponseCourseDto {
     const transformed = {
       ...data,
       instructor: data.instructor
@@ -57,7 +57,9 @@ export class CoursesService {
             undefined,
           );
     return paginatedResponse(
-      data.map((item) => this.toResponseDto(item)),
+      data.map((item: CourseWithInstructorAndProgram) =>
+        this.toResponseDto(item),
+      ),
       total,
       params,
     );

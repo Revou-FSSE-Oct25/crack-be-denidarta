@@ -1,8 +1,9 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { faker } from '@faker-js/faker';
 import { randomUUID } from 'crypto';
+
+let faker: any;
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
@@ -973,6 +974,8 @@ async function seedCertificates() {
 }
 
 async function main() {
+  const fakerModule = await import('@faker-js/faker');
+  faker = fakerModule.faker;
   await seedAdmin();
   await seedUsers('instructor', 25);
   await seedUsers('student', 25);

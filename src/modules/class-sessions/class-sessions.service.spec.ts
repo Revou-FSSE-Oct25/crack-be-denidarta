@@ -3,6 +3,8 @@ import { NotFoundException } from '@nestjs/common';
 import { ClassSessionsService } from './class-sessions.service';
 import { ClassSessionRepository } from './class-sessions.repository';
 import { AttendancesService } from '../attendances/attendances.service';
+import { JwtPayload } from '../../common/decorators/current-user.decorator';
+import { UserRole } from '@prisma/client';
 
 const mockClassSessionsRepository = {
   create: jest.fn(),
@@ -59,16 +61,17 @@ describe('ClassSessionsService', () => {
     ];
 
     it('should return paginated envelope for a student', async () => {
-      const mockUser = { sub: 'student-id', role: 'student' };
+      const mockUser: JwtPayload = {
+        sub: 'student-id',
+        role: UserRole.student,
+        email: 'student@example.com',
+      };
       mockClassSessionsRepository.findAll.mockResolvedValueOnce({
         data: mockData,
         total: 1,
       });
 
-      const result = await service.findAll(
-        { page: 1, limit: 10 },
-        mockUser as any,
-      );
+      const result = await service.findAll({ page: 1, limit: 10 }, mockUser);
 
       expect(mockClassSessionsRepository.findAll).toHaveBeenCalledWith(
         { skip: 0, take: 10, page: 1, limit: 10 },
@@ -81,16 +84,17 @@ describe('ClassSessionsService', () => {
     });
 
     it('should return paginated envelope for instructor/admin', async () => {
-      const mockUser = { sub: 'instructor-id', role: 'instructor' };
+      const mockUser: JwtPayload = {
+        sub: 'instructor-id',
+        role: UserRole.instructor,
+        email: 'instructor@example.com',
+      };
       mockClassSessionsRepository.findAll.mockResolvedValueOnce({
         data: mockData,
         total: 15,
       });
 
-      const result = await service.findAll(
-        { page: 2, limit: 5 },
-        mockUser as any,
-      );
+      const result = await service.findAll({ page: 2, limit: 5 }, mockUser);
 
       expect(mockClassSessionsRepository.findAll).toHaveBeenCalledWith(
         { skip: 5, take: 5, page: 2, limit: 5 },

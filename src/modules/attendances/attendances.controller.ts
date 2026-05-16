@@ -32,8 +32,12 @@ export class AttendancesController {
 
   @Get()
   @Roles(UserRole.student, UserRole.instructor, UserRole.admin)
-  findAll(@CurrentUser() user: JwtPayload, @Query() query: PaginationQueryDto) {
-    return this.attendancesService.findAll(user, query);
+  findAll(
+    @CurrentUser() user: JwtPayload,
+    @Query() query: PaginationQueryDto,
+    @Query('studentId') studentId?: string,
+  ) {
+    return this.attendancesService.findAll(user, { ...query, studentId });
   }
 
   @Get('session/:sessionId')

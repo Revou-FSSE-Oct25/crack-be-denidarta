@@ -26,18 +26,19 @@ export class AttendancesService {
 
   async create(dto: CreateAttendanceDto): Promise<ResponseAttendanceDto> {
     const result = await this.attendanceRepository.create(dto);
-    return this.toDto(result as unknown as Record<string, unknown>);
+    return this.toDto(result);
   }
 
   async findAll(
     user: JwtPayload,
-    query: PaginationQueryDto,
+    query: PaginationQueryDto & { studentId?: string },
   ): Promise<PaginatedResponse<ResponseAttendanceDto>> {
     const params = paginationParams(query);
     const [data, total] = await this.attendanceRepository.findAllPaginated(
       user,
       params.skip,
       params.take,
+      query.studentId,
     );
     return paginatedResponse(
       data.map((a) => this.toDto(a as unknown as Record<string, unknown>)),
@@ -48,12 +49,7 @@ export class AttendancesService {
 
   async findOne(id: string): Promise<ResponseAttendanceDto> {
     const result = await this.attendanceRepository.findOne(id);
-    return this.toDto(
-      ensureFound(result, `Attendance ${id} not found`) as unknown as Record<
-        string,
-        unknown
-      >,
-    );
+    return this.toDto(ensureFound(result, `Attendance ${id} not found`));
   }
 
   findBySession(classSessionId: string) {
@@ -65,7 +61,7 @@ export class AttendancesService {
     dto: UpdateAttendanceDto,
   ): Promise<ResponseAttendanceDto> {
     const result = await this.attendanceRepository.update(id, dto);
-    return this.toDto(result as unknown as Record<string, unknown>);
+    return this.toDto(result);
   }
 
   remove(id: string) {
@@ -84,7 +80,7 @@ export class AttendancesService {
       attendanceId,
       userId,
     );
-    return this.toDto(result as unknown as Record<string, unknown>);
+    return this.toDto(result);
   }
 
   async verifyAttendance(
@@ -97,6 +93,6 @@ export class AttendancesService {
       verifierId,
       dto,
     );
-    return this.toDto(result as unknown as Record<string, unknown>);
+    return this.toDto(result);
   }
 }

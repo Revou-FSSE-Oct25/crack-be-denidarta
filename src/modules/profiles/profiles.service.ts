@@ -29,7 +29,7 @@ export class ProfilesService {
     dto: CreateProfileDto,
   ): Promise<ResponseProfileDto> {
     const result = await this.profilesRepository.create(userId, dto);
-    return this.toDto(result as unknown as Record<string, unknown>);
+    return this.toDto(result);
   }
 
   // ---- Read ----
@@ -51,21 +51,13 @@ export class ProfilesService {
 
   async findOne(id: string): Promise<ResponseProfileDto> {
     const profile = await this.profilesRepository.findOne(id);
-    return this.toDto(
-      ensureFound(profile, `Profile ${id} not found`) as unknown as Record<
-        string,
-        unknown
-      >,
-    );
+    return this.toDto(ensureFound(profile, `Profile ${id} not found`));
   }
 
   async findByUserId(userId: string): Promise<ResponseProfileDto> {
     const profile = await this.profilesRepository.findByUserId(userId);
     return this.toDto(
-      ensureFound(
-        profile,
-        `Profile for user ${userId} not found`,
-      ) as unknown as Record<string, unknown>,
+      ensureFound(profile, `Profile for user ${userId} not found`),
     );
   }
 
@@ -73,7 +65,7 @@ export class ProfilesService {
 
   async update(id: string, dto: UpdateProfileDto): Promise<ResponseProfileDto> {
     const result = await this.profilesRepository.update(id, dto);
-    return this.toDto(result as unknown as Record<string, unknown>);
+    return this.toDto(result);
   }
 
   async upsertByUserId(
@@ -81,7 +73,7 @@ export class ProfilesService {
     dto: UpdateProfileDto,
   ): Promise<ResponseProfileDto> {
     const result = await this.profilesRepository.upsertByUserId(userId, dto);
-    return this.toDto(result as unknown as Record<string, unknown>);
+    return this.toDto(result);
   }
 
   // ---- Delete ----

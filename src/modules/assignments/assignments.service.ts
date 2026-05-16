@@ -52,9 +52,9 @@ export class AssignmentsService {
       minPoints: assignmentData.minPoints
         ? Number(assignmentData.minPoints)
         : 0,
-      createdAt: new Date(assignmentData.createdAt as Date),
-      updatedAt: new Date(assignmentData.updatedAt as Date),
-      dueDate: new Date(assignmentData.dueDate as Date),
+      createdAt: new Date(assignmentData.createdAt),
+      updatedAt: new Date(assignmentData.updatedAt),
+      dueDate: new Date(assignmentData.dueDate),
     };
 
     const responseDto = plainToInstance(
@@ -128,7 +128,7 @@ export class AssignmentsService {
     );
 
     return this.toResponseDto(
-      ensureFound(assignment, `Assignment ${id} not found`) as AssignmentRaw,
+      ensureFound(assignment, `Assignment ${id} not found`),
     );
   }
 

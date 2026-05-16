@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { CourseWithInstructorAndProgram } from './types/course-with-relations.type';
 
 @Injectable()
 export class CourseRepository {
@@ -29,7 +30,7 @@ export class CourseRepository {
     skip: number,
     take: number,
     search?: string,
-  ): Promise<[any[], number]> {
+  ): Promise<[CourseWithInstructorAndProgram[], number]> {
     const where: Prisma.CourseWhereInput = {
       deletedAt: null,
       ...(search && {
@@ -58,7 +59,7 @@ export class CourseRepository {
     skip: number,
     take: number,
     search?: string,
-  ): Promise<[any[], number]> {
+  ): Promise<[CourseWithInstructorAndProgram[], number]> {
     const where: Prisma.CourseWhereInput = {
       deletedAt: null,
       program: {

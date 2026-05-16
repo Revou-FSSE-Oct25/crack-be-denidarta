@@ -6,6 +6,27 @@ import { PrismaService } from '../src/database/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { UserRole, EnrollmentStatus } from '@prisma/client';
 
+interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  skip: number;
+  take: number;
+}
+
+interface CourseResponse {
+  id: string;
+  name: string;
+  // Add other properties if needed for assertions
+}
+
+interface EnrollmentResponse {
+  id: string;
+  programId: string;
+  userId: string;
+  status: EnrollmentStatus;
+  // Add other properties if needed for assertions
+}
+
 describe('Program Enrollment Integration (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
@@ -38,23 +59,33 @@ describe('Program Enrollment Integration (e2e)', () => {
     // Clean up created entities
     try {
       await prisma.classSession.deleteMany({ where: { courseId: courseId } });
-    } catch (e) {}
+    } catch (_e) {
+      void _e; // Intentionally ignore errors during cleanup
+    }
     try {
       await prisma.course.deleteMany({ where: { id: courseId } });
-    } catch (e) {}
+    } catch (_e) {
+      void _e; // Intentionally ignore errors during cleanup
+    }
     try {
       await prisma.programEnrollment.deleteMany({
         where: { programId, userId: studentId },
       });
-    } catch (e) {}
+    } catch (_e) {
+      void _e; // Intentionally ignore errors during cleanup
+    }
     try {
       await prisma.program.deleteMany({ where: { id: programId } });
-    } catch (e) {}
+    } catch (_e) {
+      void _e; // Intentionally ignore errors during cleanup
+    }
     try {
       await prisma.user.deleteMany({
         where: { id: { in: [adminId, instructorId, studentId] } },
       });
-    } catch (e) {}
+    } catch (_e) {
+      void _e; // Intentionally ignore errors during cleanup
+    }
 
     await app.close();
   });
@@ -120,18 +151,22 @@ describe('Program Enrollment Integration (e2e)', () => {
   });
 
   it('student should not see the course before enrollment', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const res = await request(app.getHttpServer())
       .get('/courses')
       .set('Authorization', `Bearer ${studentToken}`)
       .expect(200);
 
     // Expect the course array not to include the newly created course
-    const courses: any[] = res.body.data?.data || [];
-    const foundCourse = courses.find((c: any) => c.id === courseId);
+    const courses: CourseResponse[] =
+      (res.body as { data: PaginatedResponse<CourseResponse> }).data?.data ||
+      [];
+    const foundCourse = courses.find((c) => c.id === courseId);
     expect(foundCourse).toBeUndefined();
   });
 
   it('admin enrolls student to the program', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const res = await request(app.getHttpServer())
       .post('/enrollments')
       .set('Authorization', `Bearer ${adminToken}`)
@@ -142,31 +177,39 @@ describe('Program Enrollment Integration (e2e)', () => {
       })
       .expect(201);
 
-    expect(res.body.data.data.programId).toBe(programId);
-    expect(res.body.data.data.userId).toBe(studentId);
-    expect(res.body.data.data.status).toBe(EnrollmentStatus.enrolled);
+    const enrollmentData = (res.body as { data: { data: EnrollmentResponse } })
+      .data.data;
+    expect(enrollmentData.programId).toBe(programId);
+    expect(enrollmentData.userId).toBe(studentId);
+    expect(enrollmentData.status).toBe(EnrollmentStatus.enrolled);
   });
 
   it('student accesses the assets (courses) of their program', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const res = await request(app.getHttpServer())
       .get('/courses')
       .set('Authorization', `Bearer ${studentToken}`)
       .expect(200);
 
     // Student should now see the course associated with the enrolled program
-    const courses: any[] = res.body.data?.data || [];
-    const foundCourse = courses.find((c: any) => c.id === courseId);
+    const courses: CourseResponse[] =
+      (res.body as { data: PaginatedResponse<CourseResponse> }).data?.data ||
+      [];
+    const foundCourse = courses.find((c) => c.id === courseId);
     expect(foundCourse).toBeDefined();
-    expect(foundCourse.name).toBe('Integration Test Course');
+    expect(foundCourse?.name).toBe('Integration Test Course');
   });
 
   it('student accesses specific course details', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const res = await request(app.getHttpServer())
       .get(`/courses/${courseId}`)
       .set('Authorization', `Bearer ${studentToken}`)
       .expect(200);
 
-    expect(res.body.data.data.id).toBe(courseId);
-    expect(res.body.data.data.name).toBe('Integration Test Course');
+    const courseDetails = (res.body as { data: { data: CourseResponse } }).data
+      .data;
+    expect(courseDetails.id).toBe(courseId);
+    expect(courseDetails.name).toBe('Integration Test Course');
   });
 });

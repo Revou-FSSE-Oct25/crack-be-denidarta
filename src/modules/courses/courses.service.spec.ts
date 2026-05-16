@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CoursesService } from './courses.service';
 import { CourseRepository } from './courses.repository';
+import { NotFoundException } from '@nestjs/common'; // Import NotFoundException
 
 const mockCoursesRepository = {
   create: jest.fn(),
@@ -10,15 +11,20 @@ const mockCoursesRepository = {
   remove: jest.fn(),
 };
 
+// Define a type for the partial mock of CourseRepository
+type MockCourseRepository = Partial<CourseRepository>;
+
 describe('CoursesService', () => {
   afterEach(() => jest.clearAllMocks());
 
   it('findOne throws NotFoundException when course is not found', async () => {
-    const { NotFoundException } =
-      jest.requireActual<typeof import('@nestjs/common')>('@nestjs/common');
-    const service = new CoursesService({
+    // Explicitly type the mock for the constructor
+    const partialMockCourseRepository: MockCourseRepository = {
       findOne: jest.fn().mockResolvedValue(null),
-    } as any);
+    };
+    const service = new CoursesService(
+      partialMockCourseRepository as CourseRepository,
+    );
     await expect(service.findOne('bad-id')).rejects.toThrow(NotFoundException);
   });
 

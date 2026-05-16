@@ -128,8 +128,8 @@ describe('AssignmentsService', () => {
       const result = await service.findOne('uuid-assignment-1', instructorUser);
 
       expect(mockFindOne).toHaveBeenCalledWith('uuid-assignment-1', undefined);
-      expect(result!.submitted).toBe(3);
-      expect(result!.toSubmit).toBe(5);
+      expect(result.submitted).toBe(3);
+      expect(result.toSubmit).toBe(5);
     });
   });
 

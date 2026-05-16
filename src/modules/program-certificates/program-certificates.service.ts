@@ -123,7 +123,7 @@ export class ProgramCertificatesService {
       studentNameSnapshot,
       programNameSnapshot,
     });
-    return this.toDto(result as unknown as Record<string, unknown>);
+    return this.toDto(result);
   }
 
   // ─── Read ──────────────────────────────────────────────────────────
@@ -160,7 +160,7 @@ export class ProgramCertificatesService {
       throw new NotFoundException('Certificate not found');
     }
 
-    return this.toDto(cert as unknown as Record<string, unknown>);
+    return this.toDto(cert);
   }
 
   /**

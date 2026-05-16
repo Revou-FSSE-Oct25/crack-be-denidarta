@@ -11,12 +11,16 @@ import {
   PaginatedResponse,
 } from '../../common/utils/pagination.util';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
+import {
+  EnrollmentWithRelations,
+  CourseWithInstructor,
+} from './types/enrollment-with-relations.type';
 
 @Injectable()
 export class EnrollmentsService {
   constructor(private readonly enrollmentRepository: EnrollmentRepository) {}
 
-  private toDto(data: any): ResponseEnrollmentDto {
+  private toDto(data: EnrollmentWithRelations): ResponseEnrollmentDto {
     return plainToInstance(
       ResponseEnrollmentDto,
       {
@@ -38,22 +42,25 @@ export class EnrollmentsService {
               headOfProgram: data.program.headOfProgram
                 ? {
                     userId: data.program.headOfProgram.id,
-                    fullName: data.program.headOfProgram.profile?.fullName ?? null,
+                    fullName:
+                      data.program.headOfProgram.profile?.fullName ?? null,
                   }
                 : null,
-              courses: (data.program.courses ?? []).map((course: any) => ({
-                courseId: course.id,
-                courseTitle: course.name,
-                startedAt: course.startedAt,
-                endedAt: course.endedAt,
-                status: course.status,
-                instructor: course.instructor
-                  ? {
-                      userId: course.instructor.id,
-                      fullName: course.instructor.profile?.fullName ?? null,
-                    }
-                  : null,
-              })),
+              courses: (data.program.courses ?? []).map(
+                (course: CourseWithInstructor) => ({
+                  courseId: course.id,
+                  courseTitle: course.name,
+                  startedAt: course.startedAt,
+                  endedAt: course.endedAt,
+                  status: course.status,
+                  instructor: course.instructor
+                    ? {
+                        userId: course.instructor.id,
+                        fullName: course.instructor.profile?.fullName ?? null,
+                      }
+                    : null,
+                }),
+              ),
             }
           : null,
       },
@@ -63,7 +70,7 @@ export class EnrollmentsService {
 
   async create(dto: CreateEnrollmentDto): Promise<ResponseEnrollmentDto> {
     const result = await this.enrollmentRepository.create(dto);
-    return this.toDto(result as unknown as Record<string, unknown>);
+    return this.toDto(result);
   }
 
   async findAll(
@@ -75,7 +82,7 @@ export class EnrollmentsService {
       params.take,
     );
     return paginatedResponse(
-      data.map((e) => this.toDto(e as unknown as Record<string, unknown>)),
+      data.map((e: EnrollmentWithRelations) => this.toDto(e)),
       total,
       params,
     );
@@ -83,12 +90,7 @@ export class EnrollmentsService {
 
   async findOne(id: string): Promise<ResponseEnrollmentDto> {
     const result = await this.enrollmentRepository.findOne(id);
-    return this.toDto(
-      ensureFound(result, `Enrollment ${id} not found`) as unknown as Record<
-        string,
-        unknown
-      >,
-    );
+    return this.toDto(ensureFound(result, `Enrollment ${id} not found`));
   }
 
   async update(
@@ -96,7 +98,7 @@ export class EnrollmentsService {
     dto: UpdateEnrollmentDto,
   ): Promise<ResponseEnrollmentDto> {
     const result = await this.enrollmentRepository.update(id, dto);
-    return this.toDto(result as unknown as Record<string, unknown>);
+    return this.toDto(result);
   }
 
   async remove(id: string) {
@@ -105,8 +107,6 @@ export class EnrollmentsService {
 
   async findByUserId(userId: string): Promise<ResponseEnrollmentDto[]> {
     const results = await this.enrollmentRepository.findByUserId(userId);
-    return results.map((e) =>
-      this.toDto(e as unknown as Record<string, unknown>),
-    );
+    return results.map((e: EnrollmentWithRelations) => this.toDto(e));
   }
 }

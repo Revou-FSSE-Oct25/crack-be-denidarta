@@ -4,6 +4,10 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 
+interface ExpectedResponseBody {
+  data: string;
+}
+
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
 
@@ -25,7 +29,7 @@ describe('AppController (e2e)', () => {
       .get('/')
       .expect(200)
       .expect((res) => {
-        expect(res.body.data).toBe('Hello World!');
+        expect((res.body as ExpectedResponseBody).data).toBe('Hello World!');
       });
   });
 });

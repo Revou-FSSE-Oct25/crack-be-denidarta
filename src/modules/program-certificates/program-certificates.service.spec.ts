@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { ProgramCertificatesService } from './program-certificates.service';
 import { ProgramCertificatesRepository } from './program-certificates.repository';
+import { JwtPayload } from '../../common/decorators/current-user.decorator';
+import { UserRole } from '@prisma/client';
 
 const mockRepo = {
   findEnrollment: jest.fn(),
@@ -54,8 +56,12 @@ describe('ProgramCertificatesService', () => {
 
   it('getAllCertificates returns paginated envelope', async () => {
     mockRepo.findAllCertificatesPaginated.mockResolvedValue([[mockCert], 1]);
-    const mockUser = { sub: 'u1', role: 'admin' };
-    const result = await service.getAllCertificates(mockUser as any, {
+    const mockUser: JwtPayload = {
+      sub: 'u1',
+      role: UserRole.admin,
+      email: 'u1@example.com',
+    };
+    const result = await service.getAllCertificates(mockUser, {
       page: 1,
       limit: 10,
     });
@@ -65,8 +71,12 @@ describe('ProgramCertificatesService', () => {
 
   it('getMyCertificates returns paginated envelope', async () => {
     mockRepo.findUserCertificatesPaginated.mockResolvedValue([[mockCert], 1]);
-    const mockUser = { sub: 'u1', role: 'student' };
-    const result = await service.getMyCertificates(mockUser as any, {
+    const mockUser: JwtPayload = {
+      sub: 'u1',
+      role: UserRole.student,
+      email: 'u1@example.com',
+    };
+    const result = await service.getMyCertificates(mockUser, {
       page: 1,
       limit: 10,
     });

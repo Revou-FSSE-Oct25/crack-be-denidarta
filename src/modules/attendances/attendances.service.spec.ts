@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { AttendancesService } from './attendances.service';
 import { AttendanceRepository } from './attendances.repository';
+import { JwtPayload } from '../../common/decorators/current-user.decorator';
+import { UserRole } from '@prisma/client';
 
 const mockAttendanceRepository = {
   create: jest.fn(),
@@ -56,8 +58,12 @@ describe('AttendancesService', () => {
       ],
       1,
     ]);
-    const mockUser = { sub: 'u1', role: 'admin' };
-    const result = await service.findAll(mockUser as any, {
+    const mockUser: JwtPayload = {
+      sub: 'u1',
+      role: UserRole.admin,
+      email: 'u1@example.com',
+    };
+    const result = await service.findAll(mockUser, {
       page: 1,
       limit: 10,
     });

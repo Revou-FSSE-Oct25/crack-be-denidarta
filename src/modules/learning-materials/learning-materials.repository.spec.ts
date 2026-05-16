@@ -1,5 +1,4 @@
 import { LearningMaterialRepository } from './learning-materials.repository';
-import { PrismaService } from '../../database/prisma.service';
 import { MaterialType } from '@prisma/client';
 
 const mockMaterial = {
@@ -13,7 +12,17 @@ const mockMaterial = {
   deletedAt: null,
 };
 
-const mockPrisma = {
+type MockedPrismaService = {
+  learningMaterial: {
+    create: jest.Mock;
+    findMany: jest.Mock;
+    findUnique: jest.Mock;
+    update: jest.Mock;
+    count: jest.Mock;
+  };
+};
+
+const mockPrisma: MockedPrismaService = {
   learningMaterial: {
     create: jest.fn(),
     findMany: jest.fn(),
@@ -21,7 +30,7 @@ const mockPrisma = {
     update: jest.fn(),
     count: jest.fn(),
   },
-} as unknown as PrismaService;
+};
 
 describe('LearningMaterialRepository', () => {
   let repository: LearningMaterialRepository;
@@ -39,12 +48,10 @@ describe('LearningMaterialRepository', () => {
         uploadedBy: 'uuid-user-1',
         courseId: 'uuid-course-1',
       };
-      (mockPrisma.learningMaterial.create as jest.Mock).mockResolvedValue({
+      mockPrisma.learningMaterial.create.mockResolvedValue({
         id: 'uuid-1',
       });
-      (mockPrisma.learningMaterial.findUnique as jest.Mock).mockResolvedValue(
-        mockMaterial,
-      );
+      mockPrisma.learningMaterial.findUnique.mockResolvedValue(mockMaterial);
 
       await repository.create(dto);
 
@@ -60,12 +67,8 @@ describe('LearningMaterialRepository', () => {
   describe('update', () => {
     it('updates a learning material and returns it', async () => {
       const dto = { title: 'Advanced NestJS' };
-      (mockPrisma.learningMaterial.update as jest.Mock).mockResolvedValue(
-        mockMaterial,
-      );
-      (mockPrisma.learningMaterial.findUnique as jest.Mock).mockResolvedValue(
-        mockMaterial,
-      );
+      mockPrisma.learningMaterial.update.mockResolvedValue(mockMaterial);
+      mockPrisma.learningMaterial.findUnique.mockResolvedValue(mockMaterial);
 
       await repository.update('uuid-1', dto);
 
@@ -78,9 +81,7 @@ describe('LearningMaterialRepository', () => {
 
   describe('findOne', () => {
     it('returns a learning material by id', async () => {
-      (mockPrisma.learningMaterial.findUnique as jest.Mock).mockResolvedValue(
-        mockMaterial,
-      );
+      mockPrisma.learningMaterial.findUnique.mockResolvedValue(mockMaterial);
       const result = await repository.findOne('uuid-1');
       expect(result).toEqual(mockMaterial);
     });
@@ -90,9 +91,7 @@ describe('LearningMaterialRepository', () => {
     it('soft deletes a learning material by setting deletedAt', async () => {
       const deletedAt = new Date('2026-04-15T10:00:00.000Z');
       const softDeleted = { ...mockMaterial, deletedAt };
-      (mockPrisma.learningMaterial.update as jest.Mock).mockResolvedValue(
-        softDeleted,
-      );
+      mockPrisma.learningMaterial.update.mockResolvedValue(softDeleted);
 
       const result = await repository.remove('uuid-1');
 
