@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -9,6 +10,7 @@ import { UsersService } from '../modules/users/users.service';
 import { PrismaService } from '../database/prisma.service';
 import { RefreshDto } from './dto/refresh.dto';
 import { SetPasswordDto } from './dto/set-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -112,6 +114,35 @@ export class AuthService {
     await this.usersService.activateUser(user.id, hashedPassword);
 
     return { message: 'Password set successfully. You can now log in.' };
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) throw new NotFoundException('User not found');
+    if (user.status !== 'active')
+      throw new BadRequestException('User account is not active');
+
+    const resetToken = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    await this.usersService.setResetToken(user.id, resetToken, expiresAt);
+
+    return { resetToken, expiresAt };
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    const user = await this.usersService.findByInviteToken(dto.resetToken);
+    if (!user) throw new BadRequestException('Invalid reset token');
+    if (user.status !== 'active')
+      throw new BadRequestException('User account is not active');
+    if (!user.inviteTokenExpiresAt || user.inviteTokenExpiresAt < new Date()) {
+      throw new BadRequestException('Reset token has expired');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    await this.usersService.activateUser(user.id, hashedPassword);
+
+    return { message: 'Password reset successfully.' };
   }
 
   private async issueTokens(userId: string, email: string, role: string) {

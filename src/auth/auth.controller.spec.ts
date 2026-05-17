@@ -9,6 +9,8 @@ const mockAuthService = {
   logout: jest.fn(),
   generateInvite: jest.fn(),
   setPassword: jest.fn(),
+  forgotPassword: jest.fn(),
+  resetPassword: jest.fn(),
 };
 
 describe('AuthController', () => {
@@ -111,6 +113,38 @@ describe('AuthController', () => {
       expect(mockAuthService.setPassword).toHaveBeenCalledWith(
         expect.objectContaining({ inviteToken: dto.inviteToken }),
       );
+    });
+  });
+
+  describe('forgotPassword', () => {
+    it('calls authService.forgotPassword with email and returns token', async () => {
+      const dto = { email: 'user@test.com' };
+      const response = {
+        resetToken: '00000000-0000-0000-0000-000000000003',
+        expiresAt: new Date(),
+      };
+      mockAuthService.forgotPassword.mockResolvedValue(response);
+
+      const result = await controller.forgotPassword(dto);
+
+      expect(mockAuthService.forgotPassword).toHaveBeenCalledWith(dto.email);
+      expect(result).toEqual(response);
+    });
+  });
+
+  describe('resetPassword', () => {
+    it('calls authService.resetPassword with dto and returns success message', async () => {
+      const dto = {
+        resetToken: '00000000-0000-0000-0000-000000000003',
+        password: 'newpass123',
+      };
+      const response = { message: 'Password reset successfully.' };
+      mockAuthService.resetPassword.mockResolvedValue(response);
+
+      const result = await controller.resetPassword(dto);
+
+      expect(mockAuthService.resetPassword).toHaveBeenCalledWith(dto);
+      expect(result).toEqual(response);
     });
   });
 });

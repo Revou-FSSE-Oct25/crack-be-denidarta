@@ -83,6 +83,10 @@ export class UsersService {
     );
   }
 
+  setResetToken(id: string, resetToken: string, resetTokenExpiresAt: Date) {
+    return this.userRepository.setResetToken(id, resetToken, resetTokenExpiresAt);
+  }
+
   activateUser(id: string, hashedPassword: string) {
     return this.userRepository.activateUser(id, hashedPassword);
   }

@@ -200,4 +200,19 @@ describe('UserRepository', () => {
       });
     });
   });
+
+  describe('setResetToken', () => {
+    it('should update inviteToken and inviteTokenExpiresAt without changing status', async () => {
+      const token = '00000000-0000-0000-0000-000000000002';
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+      mockPrisma.user.update.mockResolvedValue({ id: '1', inviteToken: token });
+
+      await mockRepo.setResetToken('1', token, expiresAt);
+
+      expect(mockPrisma.user.update).toHaveBeenCalledWith({
+        where: { id: '1' },
+        data: { inviteToken: token, inviteTokenExpiresAt: expiresAt },
+      });
+    });
+  });
 });

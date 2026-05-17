@@ -21,6 +21,8 @@ import { GradeSubmissionDto } from './dto/grade-submission.dto';
 import { SubmitAssignmentDto } from './dto/submit-assignment.dto';
 import { singleResponse } from '../../common/utils/pagination.util';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
+import { DataPoliciesGuard } from '../../common/guards/DataPolicies.guard';
+import { ResourceOwner } from '../../common/decorators/resource-owner.decorator';
 
 @Controller('submissions')
 export class SubmissionsController {
@@ -37,6 +39,8 @@ export class SubmissionsController {
   }
 
   @Patch(':id/submit')
+  @UseGuards(DataPoliciesGuard)
+  @ResourceOwner('id')
   async submit(
     @Param('id') id: string,
     @Body() submitAssignmentDto: SubmitAssignmentDto,
@@ -71,6 +75,8 @@ export class SubmissionsController {
   }
 
   @Get(':id')
+  @UseGuards(DataPoliciesGuard)
+  @ResourceOwner('id')
   async findOne(
     @Param('id') id: string,
     @CurrentUser() currentUser: JwtPayload,

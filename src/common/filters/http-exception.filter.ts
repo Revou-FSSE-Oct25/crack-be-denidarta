@@ -66,6 +66,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
           message: `Duplicate value on: ${fields}`,
         };
       }
+      if (exception.code === 'P2003') {
+        return {
+          statusCode: HttpStatus.CONFLICT,
+          message: 'Operation violates a foreign key constraint',
+        };
+      }
     }
 
     if (exception instanceof Prisma.PrismaClientValidationError) {

@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from '../modules/users/users.service';
 import { JwtService } from '@nestjs/jwt';
@@ -9,6 +10,7 @@ const mockUsersService = {
   findByEmail: jest.fn(),
   findOne: jest.fn(),
   setInviteToken: jest.fn(),
+  setResetToken: jest.fn(),
   findByInviteToken: jest.fn(),
   activateUser: jest.fn(),
 };
@@ -120,4 +122,102 @@ describe('AuthService', () => {
   describe('generateInvite', () => {});
 
   describe('setPassword', () => {});
+
+  describe('forgotPassword', () => {
+    it('returns resetToken and expiresAt for active user', async () => {
+      const user = { id: 'uuid-1', email: 'user@test.com', status: 'active' };
+      mockUsersService.findByEmail.mockResolvedValue(user);
+      mockUsersService.setResetToken.mockResolvedValue(undefined);
+
+      const result = await service.forgotPassword('user@test.com');
+
+      expect(mockUsersService.findByEmail).toHaveBeenCalledWith('user@test.com');
+      expect(mockUsersService.setResetToken).toHaveBeenCalledWith(
+        'uuid-1',
+        expect.any(String),
+        expect.any(Date),
+      );
+      expect(result).toHaveProperty('resetToken');
+      expect(result).toHaveProperty('expiresAt');
+      expect(result.expiresAt).toBeInstanceOf(Date);
+    });
+
+    it('throws NotFoundException when email not found', async () => {
+      mockUsersService.findByEmail.mockResolvedValue(null);
+
+      await expect(service.forgotPassword('nobody@test.com')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('throws BadRequestException when user is not active', async () => {
+      mockUsersService.findByEmail.mockResolvedValue({
+        id: 'uuid-1',
+        status: 'invited',
+      });
+
+      await expect(service.forgotPassword('user@test.com')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+  });
+
+  describe('resetPassword', () => {
+    const validToken = '00000000-0000-0000-0000-000000000003';
+
+    it('resets password and clears token for active user with valid token', async () => {
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+      const user = {
+        id: 'uuid-1',
+        status: 'active',
+        inviteTokenExpiresAt: expiresAt,
+      };
+      mockUsersService.findByInviteToken.mockResolvedValue(user);
+      mockUsersService.activateUser.mockResolvedValue(undefined);
+
+      const result = await service.resetPassword({
+        resetToken: validToken,
+        password: 'newpass123',
+      });
+
+      expect(mockUsersService.findByInviteToken).toHaveBeenCalledWith(validToken);
+      expect(mockUsersService.activateUser).toHaveBeenCalledWith(
+        'uuid-1',
+        expect.any(String),
+      );
+      expect(result).toEqual({ message: 'Password reset successfully.' });
+    });
+
+    it('throws BadRequestException when token not found', async () => {
+      mockUsersService.findByInviteToken.mockResolvedValue(null);
+
+      await expect(
+        service.resetPassword({ resetToken: validToken, password: 'newpass123' }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('throws BadRequestException when user is not active', async () => {
+      mockUsersService.findByInviteToken.mockResolvedValue({
+        id: 'uuid-1',
+        status: 'invited',
+        inviteTokenExpiresAt: new Date(Date.now() + 3600_000),
+      });
+
+      await expect(
+        service.resetPassword({ resetToken: validToken, password: 'newpass123' }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('throws BadRequestException when token is expired', async () => {
+      mockUsersService.findByInviteToken.mockResolvedValue({
+        id: 'uuid-1',
+        status: 'active',
+        inviteTokenExpiresAt: new Date(Date.now() - 1000),
+      });
+
+      await expect(
+        service.resetPassword({ resetToken: validToken, password: 'newpass123' }),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
 });

@@ -4,6 +4,7 @@ import { SubmissionsService } from './submissions.service';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { UserRole } from '@prisma/client';
+import { DataPoliciesGuard } from '../../common/guards/DataPolicies.guard';
 
 const mockSubmissionsService = {
   create: jest.fn(),
@@ -24,7 +25,10 @@ describe('SubmissionsController', () => {
       providers: [
         { provide: SubmissionsService, useValue: mockSubmissionsService },
       ],
-    }).compile();
+    })
+      .overrideGuard(DataPoliciesGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<SubmissionsController>(SubmissionsController);
   });

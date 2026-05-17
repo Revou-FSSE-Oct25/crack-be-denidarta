@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { RequestIdMiddleware } from './common/middlewares/request-id.middleware';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
@@ -21,6 +22,8 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './common/guards/jwt.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
+import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
 import { envValidationSchema } from './config/env.config';
 
 @Module({
@@ -32,7 +35,10 @@ import { envValidationSchema } from './config/env.config';
         abortEarly: false,
       },
     }),
-    ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
+    ThrottlerModule.forRoot([
+      { name: 'default', ttl: 60000, limit: 100 },
+      { name: 'short',   ttl: 10000, limit: 5  },
+    ]),
     JwtModule.register({}),
     DatabaseModule,
     UsersModule,
@@ -55,6 +61,12 @@ import { envValidationSchema } from './config/env.config';
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: TimeoutInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: AuditLogInterceptor },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestIdMiddleware).forRoutes('*');
+  }
+}
