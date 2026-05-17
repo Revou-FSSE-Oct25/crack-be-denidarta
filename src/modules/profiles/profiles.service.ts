@@ -55,9 +55,10 @@ export class ProfilesService {
   }
 
   async findByUserId(userId: string): Promise<ResponseProfileDto> {
-    const profile = await this.profilesRepository.findByUserId(userId);
+    const profile =
+      await this.profilesRepository.findByUserIdWithStudentProfile(userId);
     return this.toDto(
-      ensureFound(profile, `Profile for user ${userId} not found`),
+      ensureFound(profile, `Profile for user ${userId} not found`) as Record<string, unknown>,
     );
   }
 

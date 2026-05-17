@@ -18,6 +18,7 @@ class CourseSummaryDto {
 class StudentDto {
   @Expose() userId: string;
   @Expose() fullName: string | null;
+  @Expose() enrolledAt: Date | null;
 }
 
 class CreatorDto {

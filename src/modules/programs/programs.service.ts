@@ -37,6 +37,7 @@ export class ProgramsService {
         students: program.programs.map((enrollment) => ({
           userId: enrollment.userId,
           fullName: enrollment.user?.profile?.fullName ?? null,
+          enrolledAt: enrollment.createdAt,
         })),
         courses: program.courses.map((course) => ({
           courseId: course.id,

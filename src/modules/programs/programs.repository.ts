@@ -43,6 +43,7 @@ const programSelect = {
   programs: {
     select: {
       userId: true,
+      createdAt: true,
       user: { select: { profile: { select: { fullName: true } } } },
     },
   },

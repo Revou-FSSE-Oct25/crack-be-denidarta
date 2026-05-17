@@ -16,7 +16,7 @@ import { CourseAccessGuard } from '../../common/guards/course-access.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { singleResponse } from '../../common/utils/pagination.util';
-import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
+import { CourseQueryDto } from './dto/course-query.dto';
 
 @Controller('courses')
 export class CoursesController {
@@ -30,7 +30,7 @@ export class CoursesController {
   @Get()
   findAll(
     @CurrentUser() currentUser: JwtPayload,
-    @Query() query: PaginationQueryDto,
+    @Query() query: CourseQueryDto,
   ) {
     return this.coursesService.findAll(query, currentUser);
   }

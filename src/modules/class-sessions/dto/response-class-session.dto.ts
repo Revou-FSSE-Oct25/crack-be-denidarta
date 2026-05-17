@@ -34,4 +34,7 @@ export class ResponseClassSessionDto {
   @Expose()
   @Type(() => InstructorDto)
   instructor: InstructorDto;
+
+  @Expose() verifiedAttendanceCount?: number;
+  @Expose() totalAttendanceCount?: number;
 }

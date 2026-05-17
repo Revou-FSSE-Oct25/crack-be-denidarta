@@ -39,6 +39,21 @@ export class ProfilesRepository {
     });
   }
 
+  async findByUserIdWithStudentProfile(userId: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, deletedAt: null },
+      include: {
+        profile: true,
+        studentProfile: true,
+      },
+    });
+    if (!user?.profile) return null;
+    const { profile, studentProfile } = user;
+    const { id: _spId, userId: _spUserId, createdAt: _spCreatedAt, updatedAt: _spUpdatedAt, ...studentFields } =
+      studentProfile ?? ({} as never);
+    return { ...profile, ...studentFields };
+  }
+
   // ---- Update ----
 
   update(id: string, dto: UpdateProfileDto) {

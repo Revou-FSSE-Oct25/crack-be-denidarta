@@ -37,6 +37,7 @@ export class LearningMaterialRepository {
           uploader: {
             select: {
               id: true,
+              username: true,
               profile: { select: { fullName: true } },
             },
           },

@@ -20,14 +20,14 @@ export interface PaginatedResponse<T> {
   };
 }
 
-export function singleResponse<T>(data: T): { data: T } {
-  return { data };
-}
-
 export function paginationParams(query: PaginationQuery): PaginationParams {
   const page = Math.max(1, Number(query.page) || 1);
   const limit = Math.min(100, Math.max(1, Number(query.limit) || 10));
   return { page, limit, skip: (page - 1) * limit, take: limit };
+}
+
+export function singleResponse<T>(data: T): T {
+  return data;
 }
 
 export function paginatedResponse<T>(

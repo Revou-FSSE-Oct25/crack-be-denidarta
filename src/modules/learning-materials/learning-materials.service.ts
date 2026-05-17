@@ -19,7 +19,22 @@ export class LearningMaterialsService {
   ) {}
 
   private toDto(data: Record<string, unknown>): ResponseLearningMaterialDto {
-    return plainToInstance(ResponseLearningMaterialDto, data, {
+    const uploader = data.uploader as {
+      id: string;
+      username: string;
+      profile?: { fullName?: string | null } | null;
+    } | null;
+    const normalized = {
+      ...data,
+      uploader: uploader
+        ? {
+            id: uploader.id,
+            username: uploader.username,
+            fullName: uploader.profile?.fullName ?? null,
+          }
+        : null,
+    };
+    return plainToInstance(ResponseLearningMaterialDto, normalized, {
       excludeExtraneousValues: true,
     });
   }

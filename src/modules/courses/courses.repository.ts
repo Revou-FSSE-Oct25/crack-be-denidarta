@@ -30,9 +30,14 @@ export class CourseRepository {
     skip: number,
     take: number,
     search?: string,
+    orderBy?: Prisma.CourseOrderByWithRelationInput,
+    status?: string,
+    programId?: string,
   ): Promise<[CourseWithInstructorAndProgram[], number]> {
     const where: Prisma.CourseWhereInput = {
       deletedAt: null,
+      ...(status && status !== 'all' && { status: status as never }),
+      ...(programId && { programId }),
       ...(search && {
         OR: [
           { name: { contains: search, mode: 'insensitive' as const } },
@@ -46,6 +51,7 @@ export class CourseRepository {
         where,
         skip,
         take,
+        orderBy,
         include: this.courseInclude,
       }),
       this.prisma.course.count({ where }),
@@ -59,6 +65,8 @@ export class CourseRepository {
     skip: number,
     take: number,
     search?: string,
+    orderBy?: Prisma.CourseOrderByWithRelationInput,
+    status?: string,
   ): Promise<[CourseWithInstructorAndProgram[], number]> {
     const where: Prisma.CourseWhereInput = {
       deletedAt: null,
@@ -70,6 +78,7 @@ export class CourseRepository {
           },
         },
       },
+      ...(status && status !== 'all' && { status: status as never }),
       ...(search && {
         OR: [
           { name: { contains: search, mode: 'insensitive' as const } },
@@ -83,6 +92,7 @@ export class CourseRepository {
         where,
         skip,
         take,
+        orderBy,
         include: this.courseInclude,
       }),
       this.prisma.course.count({ where }),

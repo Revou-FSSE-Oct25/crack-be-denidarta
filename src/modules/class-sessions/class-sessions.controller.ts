@@ -13,6 +13,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { singleResponse } from '../../common/utils/pagination.util';
+import { ClassSessionQueryDto } from './dto/class-session-query.dto';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { ClassSessionsService } from './class-sessions.service';
 import { CreateClassSessionDto } from './dto/create-class-session.dto';
@@ -31,8 +32,19 @@ export class ClassSessionsController {
   }
 
   @Get()
-  findAll(@Query() query: PaginationQueryDto, @CurrentUser() user: JwtPayload) {
+  findAll(
+    @Query() query: ClassSessionQueryDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
     return this.classSessionsService.findAll(query, user);
+  }
+
+  @Get('by-program/:programId')
+  findAllForProgram(
+    @Param('programId') programId: string,
+    @Query() query: PaginationQueryDto,
+  ) {
+    return this.classSessionsService.findAllForProgram(programId, query);
   }
 
   @Get(':id')

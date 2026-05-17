@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { PaginationParams } from '../../common/utils/pagination.util';
 import { CreateClassSessionDto } from './dto/create-class-session.dto';
@@ -30,8 +31,14 @@ export class ClassSessionRepository {
     });
   }
 
-  async findAll(params: PaginationParams, userId?: string) {
-    const where = {
+  async findAll(
+    params: PaginationParams,
+    userId?: string,
+    orderBy?: Prisma.ClassSessionOrderByWithRelationInput,
+    search?: string,
+    status?: string,
+  ) {
+    const where: Prisma.ClassSessionWhereInput = {
       deletedAt: null,
       ...(userId && {
         course: {
@@ -42,6 +49,42 @@ export class ClassSessionRepository {
           },
         },
       }),
+      ...(status && status !== 'all' && { status: status as never }),
+      ...(search && {
+        OR: [
+          { title: { contains: search, mode: 'insensitive' as const } },
+          {
+            course: {
+              name: { contains: search, mode: 'insensitive' as const },
+            },
+          },
+        ],
+      }),
+    };
+
+    const defaultOrder: Prisma.ClassSessionOrderByWithRelationInput[] = [
+      { sessionDate: 'asc' },
+      { startTime: 'asc' },
+    ];
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.classSession.findMany({
+        where,
+        skip: params.skip,
+        take: params.take,
+        orderBy: orderBy ?? defaultOrder,
+        include: this.sessionInclude,
+      }),
+      this.prisma.classSession.count({ where }),
+    ]);
+
+    return { data, total };
+  }
+
+  async findAllForProgram(programId: string, params: PaginationParams) {
+    const where: Prisma.ClassSessionWhereInput = {
+      deletedAt: null,
+      course: { programId },
     };
 
     const [data, total] = await this.prisma.$transaction([
@@ -49,8 +92,12 @@ export class ClassSessionRepository {
         where,
         skip: params.skip,
         take: params.take,
-        orderBy: [{ sessionDate: 'asc' }, { startTime: 'asc' }],
-        include: this.sessionInclude,
+        orderBy: [{ sessionDate: 'desc' }, { startTime: 'asc' }],
+        include: {
+          ...this.sessionInclude,
+          _count: { select: { attendances: true } },
+          attendances: { where: { isVerified: true }, select: { id: true } },
+        },
       }),
       this.prisma.classSession.count({ where }),
     ]);

@@ -2,6 +2,7 @@ import { Expose, Type } from 'class-transformer';
 
 class UploaderDto {
   @Expose() id: string;
+  @Expose() username: string;
   @Expose() fullName: string | null;
 }
 

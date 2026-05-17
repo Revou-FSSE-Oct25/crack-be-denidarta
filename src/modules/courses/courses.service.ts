@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtPayload } from '../../common/decorators/current-user.decorator';
-import { UserRole } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
@@ -12,7 +12,7 @@ import {
   paginatedResponse,
   PaginatedResponse,
 } from '../../common/utils/pagination.util';
-import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
+import { CourseQueryDto, CourseSortBy } from './dto/course-query.dto';
 import { CourseWithInstructorAndProgram } from './types/course-with-relations.type';
 
 @Injectable()
@@ -38,23 +38,53 @@ export class CoursesService {
     return this.toResponseDto(result);
   }
 
+  private buildOrderBy(
+    query: CourseQueryDto,
+  ): Prisma.CourseOrderByWithRelationInput | undefined {
+    if (!query.sortBy) return undefined;
+    const dir = query.sort ?? 'asc';
+    switch (query.sortBy) {
+      case CourseSortBy.name:
+        return { name: dir };
+      case CourseSortBy.createdAt:
+        return { createdAt: dir };
+      case CourseSortBy.startedAt:
+        return { startedAt: dir };
+      case CourseSortBy.endedAt:
+        return { endedAt: dir };
+      case CourseSortBy.instructorName:
+        return { instructor: { profile: { fullName: dir } } };
+      case CourseSortBy.programName:
+        return { program: { name: dir } };
+    }
+  }
+
   async findAll(
-    query: PaginationQueryDto,
+    query: CourseQueryDto,
     currentUser: JwtPayload,
   ): Promise<PaginatedResponse<ResponseCourseDto>> {
     const params = paginationParams(query);
+    const orderBy = this.buildOrderBy(query);
+    const search = query.search || undefined;
+    const status = query.status || undefined;
+    const programId = query.programId || undefined;
     const [data, total] =
       currentUser.role === UserRole.student
         ? await this.courseRepository.findStudentsCourse(
             currentUser.sub,
             params.skip,
             params.take,
-            undefined,
+            search,
+            orderBy,
+            status,
           )
         : await this.courseRepository.findAll(
             params.skip,
             params.take,
-            undefined,
+            search,
+            orderBy,
+            status,
+            programId,
           );
     return paginatedResponse(
       data.map((item: CourseWithInstructorAndProgram) =>
