@@ -64,6 +64,7 @@ describe('UserRepository', () => {
 
       expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
         where: { id: '1' },
+        include: { profile: true, studentProfile: true },
       });
       expect(result).toEqual(user);
     });

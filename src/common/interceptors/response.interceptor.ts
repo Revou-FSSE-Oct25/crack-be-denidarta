@@ -31,7 +31,6 @@ export class ResponseInterceptor implements NestInterceptor {
         if (
           data &&
           typeof data === 'object' &&
-          'meta' in data &&
           'data' in data
         ) {
           return { ...base, ...(data as object) };

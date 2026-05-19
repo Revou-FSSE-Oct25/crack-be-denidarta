@@ -26,8 +26,8 @@ export function paginationParams(query: PaginationQuery): PaginationParams {
   return { page, limit, skip: (page - 1) * limit, take: limit };
 }
 
-export function singleResponse<T>(data: T): T {
-  return data;
+export function singleResponse<T>(data: T): { data: T } {
+  return { data };
 }
 
 export function paginatedResponse<T>(

@@ -6,6 +6,7 @@ describe('ProfilesService', () => {
   const mockRepo = {
     findOne: jest.fn(),
     findByUserId: jest.fn(),
+    findByUserIdWithStudentProfile: jest.fn(),
     findAllPaginated: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
@@ -25,7 +26,7 @@ describe('ProfilesService', () => {
   });
 
   it('findByUserId throws NotFoundException when absent', async () => {
-    mockRepo.findByUserId.mockResolvedValue(null);
+    mockRepo.findByUserIdWithStudentProfile.mockResolvedValue(null);
     await expect(service.findByUserId('u1')).rejects.toThrow(NotFoundException);
   });
 

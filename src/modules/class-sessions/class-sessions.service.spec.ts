@@ -76,6 +76,9 @@ describe('ClassSessionsService', () => {
       expect(mockClassSessionsRepository.findAll).toHaveBeenCalledWith(
         { skip: 0, take: 10, page: 1, limit: 10 },
         mockUser.sub,
+        undefined,
+        undefined,
+        undefined,
       );
       expect(result).toHaveProperty('data');
       expect(result).toHaveProperty('meta');
@@ -98,6 +101,9 @@ describe('ClassSessionsService', () => {
 
       expect(mockClassSessionsRepository.findAll).toHaveBeenCalledWith(
         { skip: 5, take: 5, page: 2, limit: 5 },
+        undefined,
+        undefined,
+        undefined,
         undefined,
       );
       expect(result.meta.total).toBe(15);
