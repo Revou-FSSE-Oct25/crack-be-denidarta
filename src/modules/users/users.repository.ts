@@ -119,7 +119,10 @@ export class UserRepository {
   setResetToken(id: string, resetToken: string, resetTokenExpiresAt: Date) {
     return this.prisma.user.update({
       where: { id },
-      data: { inviteToken: resetToken, inviteTokenExpiresAt: resetTokenExpiresAt },
+      data: {
+        inviteToken: resetToken,
+        inviteTokenExpiresAt: resetTokenExpiresAt,
+      },
     });
   }
 
