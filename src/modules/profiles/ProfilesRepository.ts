@@ -8,7 +8,6 @@ export class ProfilesRepository {
   constructor(private prisma: PrismaService) {}
 
   // ---- Create ----
-
   create(userId: string, dto: CreateProfileDto) {
     return this.prisma.profile.create({
       data: { userId, ...dto },
@@ -16,7 +15,6 @@ export class ProfilesRepository {
   }
 
   // ---- Read ----
-
   findAllPaginated(skip: number, take: number) {
     return Promise.all([
       this.prisma.profile.findMany({
@@ -61,7 +59,6 @@ export class ProfilesRepository {
   }
 
   // ---- Update ----
-
   update(id: string, dto: UpdateProfileDto) {
     return this.prisma.profile.update({ where: { userId: id }, data: dto });
   }
@@ -75,7 +72,6 @@ export class ProfilesRepository {
   }
 
   // ---- Delete ----
-
   remove(id: string) {
     return this.prisma.profile.update({
       where: { userId: id },

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import { ProfilesRepository } from './profiles.repository';
+import { ProfilesRepository } from './ProfilesRepository';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ResponseProfileDto } from './dto/response-profile.dto';
@@ -58,7 +58,10 @@ export class ProfilesService {
     const profile =
       await this.profilesRepository.findByUserIdWithStudentProfile(userId);
     return this.toDto(
-      ensureFound(profile, `Profile for user ${userId} not found`) as Record<string, unknown>,
+      ensureFound(profile, `Profile for user ${userId} not found`) as Record<
+        string,
+        unknown
+      >,
     );
   }
 

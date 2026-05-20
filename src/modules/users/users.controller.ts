@@ -32,8 +32,9 @@ export class UsersController {
 
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
-    const user = await this.usersService.create(createUserDto);
-    return singleResponse(new UserEntity(user));
+    const { user, inviteToken } =
+      await this.usersService.createWithInvite(createUserDto);
+    return singleResponse({ ...new UserEntity(user), inviteToken });
   }
 
   // ---- Read ----

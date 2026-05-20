@@ -9,7 +9,10 @@ import morgan from 'morgan';
 const logger = new Logger('Bootstrap');
 
 process.on('unhandledRejection', (reason: unknown) => {
-  logger.error('Unhandled promise rejection', reason instanceof Error ? reason.stack : String(reason));
+  logger.error(
+    'Unhandled promise rejection',
+    reason instanceof Error ? reason.stack : String(reason),
+  );
 });
 
 process.on('uncaughtException', (error: Error) => {

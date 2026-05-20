@@ -15,8 +15,20 @@ export class UsersService {
 
   // ---- Create ----
 
-  create(dto: CreateUserDto) {
-    return this.userRepository.create(dto);
+  async createWithInvite(dto: CreateUserDto) {
+    const inviteToken = crypto.randomUUID();
+    const inviteTokenExpiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+
+    const user = await this.prisma.user.create({
+      data: {
+        ...dto,
+        inviteToken,
+        inviteTokenExpiresAt,
+        status: 'invited',
+      },
+    });
+
+    return { user, inviteToken };
   }
 
   // ---- Read ----
@@ -84,7 +96,11 @@ export class UsersService {
   }
 
   setResetToken(id: string, resetToken: string, resetTokenExpiresAt: Date) {
-    return this.userRepository.setResetToken(id, resetToken, resetTokenExpiresAt);
+    return this.userRepository.setResetToken(
+      id,
+      resetToken,
+      resetTokenExpiresAt,
+    );
   }
 
   activateUser(id: string, hashedPassword: string) {
