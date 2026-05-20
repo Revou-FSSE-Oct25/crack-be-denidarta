@@ -1,6 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { ProfilesService } from './profiles.service';
-import { ProfilesRepository } from './profiles.repository';
+import { ProfilesRepository } from './ProfilesRepository';
 
 describe('ProfilesService', () => {
   const mockRepo = {

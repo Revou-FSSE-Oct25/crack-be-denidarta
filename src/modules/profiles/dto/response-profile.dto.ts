@@ -2,7 +2,6 @@ import { Expose } from 'class-transformer';
 
 export class ResponseProfileDto {
   // Profile fields
-  @Expose() id: string;
   @Expose() userId: string;
   @Expose() fullName: string | null;
   @Expose() phoneNumber: string | null;

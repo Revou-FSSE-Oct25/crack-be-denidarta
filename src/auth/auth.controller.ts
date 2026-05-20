@@ -4,7 +4,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Param,
   Post,
   Req,
   UseGuards,
@@ -20,10 +19,6 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { JwtPayload } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import { RolesGuard } from '../common/guards/roles.guard';
-import { UserRole } from '@prisma/client';
-
 @Throttle({ short: { ttl: 10000, limit: 5 } })
 @Controller('auth')
 export class AuthController {
@@ -55,14 +50,6 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   logout(@Body() dto: RefreshDto) {
     return this.authService.logout(dto.refreshToken);
-  }
-
-  @Post('invite/:userId')
-  @HttpCode(HttpStatus.OK)
-  @Roles(UserRole.admin)
-  @UseGuards(RolesGuard)
-  generateInvite(@Param('userId') userId: string) {
-    return this.authService.generateInvite(userId);
   }
 
   @Public()

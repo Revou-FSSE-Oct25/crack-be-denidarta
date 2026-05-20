@@ -130,13 +130,12 @@ model User {
 }
 
 model Profile {
-  id        String    @id @default(uuid())
+  userId    String    @id @map("user_id")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  userId String @unique @map("user_id")
-  user   User   @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
   fullName          String?         @map("full_name") @db.VarChar(255)
   phoneNumber       String?         @map("phone_number") @db.VarChar(20)
@@ -166,12 +165,11 @@ model Profile {
 }
 
 model StudentProfile {
-  id        String   @id @default(uuid())
+  userId    String   @id @map("user_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  userId String @unique @map("user_id")
-  user   User   @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
   nim             String         @unique @db.VarChar(50)
   enrollmentYear  Int            @map("enrollment_year") @db.SmallInt
@@ -185,12 +183,11 @@ model StudentProfile {
 }
 
 model InstructorProfile {
-  id        String   @id @default(uuid())
+  userId    String   @id @map("user_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  userId String @unique @map("user_id")
-  user   User   @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
   employeeId        String          @unique @map("employee_id") @db.VarChar(50)
   specialization    String?         @db.VarChar(255)

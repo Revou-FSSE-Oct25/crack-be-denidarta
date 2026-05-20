@@ -84,22 +84,6 @@ export class AuthService {
     return { accessToken };
   }
 
-  async generateInvite(userId: string) {
-    const user = await this.usersService.findOne(userId);
-    if (!user) throw new BadRequestException('User not found');
-
-    const inviteToken = crypto.randomUUID();
-    const inviteTokenExpiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
-
-    await this.usersService.setInviteToken(
-      userId,
-      inviteToken,
-      inviteTokenExpiresAt,
-    );
-
-    return { inviteToken, expiresAt: inviteTokenExpiresAt };
-  }
-
   async setPassword(dto: SetPasswordDto) {
     const user = await this.usersService.findByInviteToken(dto.inviteToken);
 
