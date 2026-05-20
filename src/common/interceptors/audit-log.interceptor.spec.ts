@@ -3,7 +3,11 @@ import { ExecutionContext } from '@nestjs/common';
 import { of } from 'rxjs';
 import { lastValueFrom } from 'rxjs';
 
-function makeContext(method: string, path: string, userId?: string): ExecutionContext {
+function makeContext(
+  method: string,
+  path: string,
+  userId?: string,
+): ExecutionContext {
   return {
     switchToHttp: () => ({
       getRequest: () => ({
@@ -24,13 +28,18 @@ describe('AuditLogInterceptor', () => {
   beforeEach(() => {
     interceptor = new AuditLogInterceptor();
     logSpy = jest
-      .spyOn((interceptor as unknown as { logger: { log: () => void } }).logger, 'log')
+      .spyOn(
+        (interceptor as unknown as { logger: { log: () => void } }).logger,
+        'log',
+      )
       .mockImplementation(() => {});
   });
 
   it('logs POST requests with user and request id', async () => {
     const ctx = makeContext('POST', '/api/v1/submissions', 'user-123');
-    await lastValueFrom(interceptor.intercept(ctx, { handle: () => of({ id: '1' }) }));
+    await lastValueFrom(
+      interceptor.intercept(ctx, { handle: () => of({ id: '1' }) }),
+    );
     expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('user-123'));
   });
 

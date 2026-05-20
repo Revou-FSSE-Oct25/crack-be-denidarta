@@ -36,7 +36,11 @@ describe('UsersService', () => {
 
       await service.setResetToken('1', token, expiresAt);
 
-      expect(mockRepo.setResetToken).toHaveBeenCalledWith('1', token, expiresAt);
+      expect(mockRepo.setResetToken).toHaveBeenCalledWith(
+        '1',
+        token,
+        expiresAt,
+      );
     });
   });
 });

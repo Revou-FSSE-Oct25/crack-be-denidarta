@@ -22,6 +22,7 @@ RUN npm ci --omit=dev
 # Copy built output and prisma schema
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 
 # Generate Prisma client (prisma is in dependencies, so available)
 RUN npx prisma generate

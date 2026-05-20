@@ -30,7 +30,9 @@ export class AuditLogInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap(() => {
-        const res = context.switchToHttp().getResponse<{ statusCode: number }>();
+        const res = context
+          .switchToHttp()
+          .getResponse<{ statusCode: number }>();
         this.logger.log(
           `[${requestId}] ${req.method} ${req.path} userId=${userId} status=${res.statusCode} duration=${Date.now() - start}ms`,
         );

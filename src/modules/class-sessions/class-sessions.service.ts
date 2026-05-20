@@ -26,10 +26,15 @@ export class ClassSessionsService {
     private readonly attendancesService: AttendancesService,
   ) {}
 
-  private toResponseDto(data: Record<string, unknown>): ResponseClassSessionDto {
+  private toResponseDto(
+    data: Record<string, unknown>,
+  ): ResponseClassSessionDto {
     const raw = data as {
       course?: {
-        instructor?: { id: string; profile: { fullName: string | null } | null };
+        instructor?: {
+          id: string;
+          profile: { fullName: string | null } | null;
+        };
       };
       attendances?: { id: string }[];
       _count?: { attendances?: number };
@@ -89,7 +94,9 @@ export class ClassSessionsService {
       status,
     );
     return paginatedResponse(
-      data.map((item) => this.toResponseDto(item as unknown as Record<string, unknown>)),
+      data.map((item) =>
+        this.toResponseDto(item as unknown as Record<string, unknown>),
+      ),
       total,
       params,
     );
@@ -98,7 +105,10 @@ export class ClassSessionsService {
   async findOne(id: string): Promise<ResponseClassSessionDto> {
     const result = await this.classSessionRepository.findOne(id);
     return this.toResponseDto(
-      ensureFound(result, `Class session ${id} not found`) as unknown as Record<string, unknown>,
+      ensureFound(result, `Class session ${id} not found`) as unknown as Record<
+        string,
+        unknown
+      >,
     );
   }
 
@@ -117,10 +127,14 @@ export class ClassSessionsService {
     query: PaginationQueryDto,
   ): Promise<PaginatedResponse<ResponseClassSessionDto>> {
     const params = paginationParams(query);
-    const { data, total } =
-      await this.classSessionRepository.findAllForProgram(programId, params);
+    const { data, total } = await this.classSessionRepository.findAllForProgram(
+      programId,
+      params,
+    );
     return paginatedResponse(
-      data.map((item) => this.toResponseDto(item as unknown as Record<string, unknown>)),
+      data.map((item) =>
+        this.toResponseDto(item as unknown as Record<string, unknown>),
+      ),
       total,
       params,
     );

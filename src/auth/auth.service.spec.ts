@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from '../modules/users/users.service';
 import { JwtService } from '@nestjs/jwt';
@@ -12,7 +12,9 @@ const mockUsersService = {
   setInviteToken: jest.fn(),
   setResetToken: jest.fn(),
   findByInviteToken: jest.fn(),
+  findByResetToken: jest.fn(),
   activateUser: jest.fn(),
+  resetUserPassword: jest.fn(),
 };
 
 const mockJwtService = {
@@ -21,7 +23,7 @@ const mockJwtService = {
 };
 
 const mockPrismaService = {
-  tokenPurge: { upsert: jest.fn() },
+  tokenPurge: { upsert: jest.fn(), findUnique: jest.fn() },
 };
 
 describe('AuthService', () => {
@@ -124,41 +126,48 @@ describe('AuthService', () => {
   describe('setPassword', () => {});
 
   describe('forgotPassword', () => {
-    it('returns resetToken and expiresAt for active user', async () => {
+    const genericMessage =
+      'If an account exists for this email, a reset link has been sent.';
+
+    it('issues a reset token and returns a generic message for an active user', async () => {
       const user = { id: 'uuid-1', email: 'user@test.com', status: 'active' };
       mockUsersService.findByEmail.mockResolvedValue(user);
       mockUsersService.setResetToken.mockResolvedValue(undefined);
 
       const result = await service.forgotPassword('user@test.com');
 
-      expect(mockUsersService.findByEmail).toHaveBeenCalledWith('user@test.com');
+      expect(mockUsersService.findByEmail).toHaveBeenCalledWith(
+        'user@test.com',
+      );
       expect(mockUsersService.setResetToken).toHaveBeenCalledWith(
         'uuid-1',
         expect.any(String),
         expect.any(Date),
       );
-      expect(result).toHaveProperty('resetToken');
-      expect(result).toHaveProperty('expiresAt');
-      expect(result.expiresAt).toBeInstanceOf(Date);
+      // Response must not leak the token — it is sent only via email.
+      expect(result).toEqual({ message: genericMessage });
+      expect(result).not.toHaveProperty('resetToken');
     });
 
-    it('throws NotFoundException when email not found', async () => {
+    it('returns the same generic message when email is unknown (no enumeration)', async () => {
       mockUsersService.findByEmail.mockResolvedValue(null);
 
-      await expect(service.forgotPassword('nobody@test.com')).rejects.toThrow(
-        NotFoundException,
-      );
+      const result = await service.forgotPassword('nobody@test.com');
+
+      expect(result).toEqual({ message: genericMessage });
+      expect(mockUsersService.setResetToken).not.toHaveBeenCalled();
     });
 
-    it('throws BadRequestException when user is not active', async () => {
+    it('returns the same generic message when user is not active', async () => {
       mockUsersService.findByEmail.mockResolvedValue({
         id: 'uuid-1',
         status: 'invited',
       });
 
-      await expect(service.forgotPassword('user@test.com')).rejects.toThrow(
-        BadRequestException,
-      );
+      const result = await service.forgotPassword('user@test.com');
+
+      expect(result).toEqual({ message: genericMessage });
+      expect(mockUsersService.setResetToken).not.toHaveBeenCalled();
     });
   });
 
@@ -166,22 +175,24 @@ describe('AuthService', () => {
     const validToken = '00000000-0000-0000-0000-000000000003';
 
     it('resets password and clears token for active user with valid token', async () => {
-      const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+      const resetTokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
       const user = {
         id: 'uuid-1',
         status: 'active',
-        inviteTokenExpiresAt: expiresAt,
+        resetTokenExpiresAt,
       };
-      mockUsersService.findByInviteToken.mockResolvedValue(user);
-      mockUsersService.activateUser.mockResolvedValue(undefined);
+      mockUsersService.findByResetToken.mockResolvedValue(user);
+      mockUsersService.resetUserPassword.mockResolvedValue(undefined);
 
       const result = await service.resetPassword({
         resetToken: validToken,
         password: 'newpass123',
       });
 
-      expect(mockUsersService.findByInviteToken).toHaveBeenCalledWith(validToken);
-      expect(mockUsersService.activateUser).toHaveBeenCalledWith(
+      expect(mockUsersService.findByResetToken).toHaveBeenCalledWith(
+        validToken,
+      );
+      expect(mockUsersService.resetUserPassword).toHaveBeenCalledWith(
         'uuid-1',
         expect.any(String),
       );
@@ -189,34 +200,43 @@ describe('AuthService', () => {
     });
 
     it('throws BadRequestException when token not found', async () => {
-      mockUsersService.findByInviteToken.mockResolvedValue(null);
+      mockUsersService.findByResetToken.mockResolvedValue(null);
 
       await expect(
-        service.resetPassword({ resetToken: validToken, password: 'newpass123' }),
+        service.resetPassword({
+          resetToken: validToken,
+          password: 'newpass123',
+        }),
       ).rejects.toThrow(BadRequestException);
     });
 
     it('throws BadRequestException when user is not active', async () => {
-      mockUsersService.findByInviteToken.mockResolvedValue({
+      mockUsersService.findByResetToken.mockResolvedValue({
         id: 'uuid-1',
         status: 'invited',
-        inviteTokenExpiresAt: new Date(Date.now() + 3600_000),
+        resetTokenExpiresAt: new Date(Date.now() + 3600_000),
       });
 
       await expect(
-        service.resetPassword({ resetToken: validToken, password: 'newpass123' }),
+        service.resetPassword({
+          resetToken: validToken,
+          password: 'newpass123',
+        }),
       ).rejects.toThrow(BadRequestException);
     });
 
     it('throws BadRequestException when token is expired', async () => {
-      mockUsersService.findByInviteToken.mockResolvedValue({
+      mockUsersService.findByResetToken.mockResolvedValue({
         id: 'uuid-1',
         status: 'active',
-        inviteTokenExpiresAt: new Date(Date.now() - 1000),
+        resetTokenExpiresAt: new Date(Date.now() - 1000),
       });
 
       await expect(
-        service.resetPassword({ resetToken: validToken, password: 'newpass123' }),
+        service.resetPassword({
+          resetToken: validToken,
+          password: 'newpass123',
+        }),
       ).rejects.toThrow(BadRequestException);
     });
   });

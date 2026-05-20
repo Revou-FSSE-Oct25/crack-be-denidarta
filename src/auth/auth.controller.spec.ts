@@ -1,17 +1,28 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 
 const mockAuthService = {
   login: jest.fn(),
   refresh: jest.fn(),
   logout: jest.fn(),
-  generateInvite: jest.fn(),
   setPassword: jest.fn(),
   forgotPassword: jest.fn(),
   resetPassword: jest.fn(),
 };
+
+function makeRes() {
+  const res = {
+    cookie: jest.fn(),
+    clearCookie: jest.fn(),
+  };
+  return res as unknown as Response;
+}
+
+function makeReq(cookies: Record<string, string> = {}, user?: unknown) {
+  return { cookies, user } as unknown as Request;
+}
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -28,7 +39,7 @@ describe('AuthController', () => {
   afterEach(() => jest.clearAllMocks());
 
   describe('login', () => {
-    it('calls authService.login with request.user and returns tokens', async () => {
+    it('calls authService.login with request.user, sets cookies, and returns access token', async () => {
       const user = {
         id: 'uuid-1',
         email: 'test@example.com',
@@ -38,49 +49,74 @@ describe('AuthController', () => {
       const tokens = { accessToken: 'access', refreshToken: 'refresh' };
       mockAuthService.login.mockResolvedValue(tokens);
 
-      const result = await controller.login({ user } as unknown as Request);
+      const res = makeRes();
+      const result = await controller.login(makeReq({}, user), res);
 
       expect(mockAuthService.login).toHaveBeenCalledWith(user);
-      expect(result).toEqual(tokens);
+      expect(res.cookie).toHaveBeenCalledWith(
+        'access_token',
+        'access',
+        expect.objectContaining({ httpOnly: true }),
+      );
+      expect(res.cookie).toHaveBeenCalledWith(
+        'refresh_token',
+        'refresh',
+        expect.objectContaining({ httpOnly: true, sameSite: 'strict' }),
+      );
+      expect(result).toEqual({ accessToken: 'access' });
     });
   });
 
   describe('refresh', () => {
-    it('calls authService.refresh with refreshToken and returns new tokens', async () => {
-      const dto = { refreshToken: 'valid-refresh-token' };
+    it('reads refresh token from cookie, rotates tokens, sets new cookies', async () => {
       const tokens = { accessToken: 'new-access', refreshToken: 'new-refresh' };
       mockAuthService.refresh.mockResolvedValue(tokens);
 
-      const result = await controller.refresh(dto);
+      const res = makeRes();
+      const req = makeReq({ refresh_token: 'cookie-refresh' });
+      const result = await controller.refresh(req, res, {});
 
-      expect(mockAuthService.refresh).toHaveBeenCalledWith(dto);
-      expect(result).toEqual(tokens);
+      expect(mockAuthService.refresh).toHaveBeenCalledWith('cookie-refresh');
+      expect(res.cookie).toHaveBeenCalledWith(
+        'access_token',
+        'new-access',
+        expect.any(Object),
+      );
+      expect(result).toEqual({ accessToken: 'new-access' });
+    });
+
+    it('falls back to body token when cookie absent', async () => {
+      const tokens = { accessToken: 'a', refreshToken: 'r' };
+      mockAuthService.refresh.mockResolvedValue(tokens);
+
+      const res = makeRes();
+      await controller.refresh(makeReq({}), res, {
+        refreshToken: 'body-refresh',
+      });
+
+      expect(mockAuthService.refresh).toHaveBeenCalledWith('body-refresh');
     });
   });
 
   describe('logout', () => {
-    it('calls authService.logout with refreshToken and returns logged out message', async () => {
-      const dto = { refreshToken: 'valid-refresh-token' };
+    it('clears cookies and calls authService.logout with the cookie token', async () => {
       const response = { message: 'Logged out successfully' };
-      mockAuthService.logout = jest.fn().mockResolvedValue(response);
+      mockAuthService.logout.mockResolvedValue(response);
 
-      const result = await controller.logout(dto);
+      const res = makeRes();
+      const req = makeReq({ refresh_token: 'cookie-refresh' });
+      const result = await controller.logout(req, res, {});
 
-      expect(mockAuthService.logout).toHaveBeenCalledWith(dto.refreshToken);
+      expect(mockAuthService.logout).toHaveBeenCalledWith('cookie-refresh');
+      expect(res.clearCookie).toHaveBeenCalledWith(
+        'access_token',
+        expect.any(Object),
+      );
+      expect(res.clearCookie).toHaveBeenCalledWith(
+        'refresh_token',
+        expect.any(Object),
+      );
       expect(result).toEqual(response);
-    });
-  });
-
-  describe('generateInvite', () => {
-    it('calls authService.generateInvite with userId and returns invite link', async () => {
-      const userId = 'uuid-1';
-      const inviteLink = { inviteLink: 'https://example.com/invite/token123' };
-      mockAuthService.generateInvite.mockResolvedValue(inviteLink);
-
-      const result = await controller.generateInvite(userId);
-
-      expect(mockAuthService.generateInvite).toHaveBeenCalledWith(userId);
-      expect(result).toEqual(inviteLink);
     });
   });
 
@@ -98,30 +134,14 @@ describe('AuthController', () => {
       expect(mockAuthService.setPassword).toHaveBeenCalledWith(dto);
       expect(result).toEqual(response);
     });
-
-    it('requires a valid inviteToken (UUID) to set password', async () => {
-      const dto = {
-        inviteToken: '550e8400-e29b-41d4-a716-446655440000',
-        password: 'newpassword123',
-      };
-      mockAuthService.setPassword.mockResolvedValue({
-        message: 'Password set successfully',
-      });
-
-      await controller.setPassword(dto);
-
-      expect(mockAuthService.setPassword).toHaveBeenCalledWith(
-        expect.objectContaining({ inviteToken: dto.inviteToken }),
-      );
-    });
   });
 
   describe('forgotPassword', () => {
-    it('calls authService.forgotPassword with email and returns token', async () => {
+    it('calls authService.forgotPassword with email and returns generic message', async () => {
       const dto = { email: 'user@test.com' };
       const response = {
-        resetToken: '00000000-0000-0000-0000-000000000003',
-        expiresAt: new Date(),
+        message:
+          'If an account exists for this email, a reset link has been sent.',
       };
       mockAuthService.forgotPassword.mockResolvedValue(response);
 

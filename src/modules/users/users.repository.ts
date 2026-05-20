@@ -44,6 +44,10 @@ export class UserRepository {
     return this.prisma.user.findUnique({ where: { inviteToken } });
   }
 
+  findByResetToken(resetToken: string) {
+    return this.prisma.user.findUnique({ where: { resetToken } });
+  }
+
   async findAllPaginated(options: {
     skip: number;
     take: number;
@@ -119,10 +123,7 @@ export class UserRepository {
   setResetToken(id: string, resetToken: string, resetTokenExpiresAt: Date) {
     return this.prisma.user.update({
       where: { id },
-      data: {
-        inviteToken: resetToken,
-        inviteTokenExpiresAt: resetTokenExpiresAt,
-      },
+      data: { resetToken, resetTokenExpiresAt },
     });
   }
 
@@ -134,6 +135,17 @@ export class UserRepository {
         status: 'active',
         inviteToken: null,
         inviteTokenExpiresAt: null,
+      },
+    });
+  }
+
+  resetUserPassword(id: string, hashedPassword: string) {
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        passwordHash: hashedPassword,
+        resetToken: null,
+        resetTokenExpiresAt: null,
       },
     });
   }

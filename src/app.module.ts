@@ -37,7 +37,7 @@ import { envValidationSchema } from './config/env.config';
     }),
     ThrottlerModule.forRoot([
       { name: 'default', ttl: 60000, limit: 100 },
-      { name: 'short',   ttl: 10000, limit: 5  },
+      { name: 'short', ttl: 10000, limit: 5 },
     ]),
     JwtModule.register({}),
     DatabaseModule,

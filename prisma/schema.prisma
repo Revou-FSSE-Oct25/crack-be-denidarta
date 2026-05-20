@@ -7,7 +7,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // ─── ENUMS ─────────────────────────────────────────────────────────
@@ -112,6 +111,8 @@ model User {
   status               UserStatus @default(invited)
   inviteToken          String?    @unique @map("invite_token")
   inviteTokenExpiresAt DateTime?  @map("invite_token_expires_at")
+  resetToken           String?    @unique @map("reset_token")
+  resetTokenExpiresAt  DateTime?  @map("reset_token_expires_at")
 
   profile             Profile?
   studentProfile      StudentProfile?

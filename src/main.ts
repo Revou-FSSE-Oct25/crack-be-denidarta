@@ -5,6 +5,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { SanitizePipe } from './common/pipes/sanitize.pipe';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 
 const logger = new Logger('Bootstrap');
 
@@ -23,6 +24,7 @@ process.on('uncaughtException', (error: Error) => {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(helmet());
+  app.use(cookieParser());
   app.use(morgan('dev'));
   app.enableCors(
     process.env.NODE_ENV === 'production'

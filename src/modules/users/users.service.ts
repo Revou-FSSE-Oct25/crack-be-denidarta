@@ -68,6 +68,10 @@ export class UsersService {
     return this.userRepository.findByInviteToken(inviteToken);
   }
 
+  findByResetToken(resetToken: string) {
+    return this.userRepository.findByResetToken(resetToken);
+  }
+
   findAllPaginated(options: {
     skip: number;
     take: number;
@@ -105,6 +109,10 @@ export class UsersService {
 
   activateUser(id: string, hashedPassword: string) {
     return this.userRepository.activateUser(id, hashedPassword);
+  }
+
+  resetUserPassword(id: string, hashedPassword: string) {
+    return this.userRepository.resetUserPassword(id, hashedPassword);
   }
 
   // ---- Delete ----

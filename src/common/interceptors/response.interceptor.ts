@@ -28,11 +28,7 @@ export class ResponseInterceptor implements NestInterceptor {
     return next.handle().pipe(
       map((data) => {
         const base = { success: true, statusCode, message: 'OK' };
-        if (
-          data &&
-          typeof data === 'object' &&
-          'data' in data
-        ) {
+        if (data && typeof data === 'object' && 'data' in data) {
           return { ...base, ...(data as object) };
         }
         return { ...base, data: data ?? undefined };
